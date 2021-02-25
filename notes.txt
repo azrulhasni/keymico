@@ -1,0 +1,584 @@
+KeyMiCo
+
+https://www.examples.com/business/bank-statement.html
+
+ubuntu-s-4vcpu-8gb-lon1-01
+8 GB / 160 GB Disk / LON1 - Ubuntu 20.04 (LTS) x64
+46.101.1.218 
+
+======================================================================
+======================================================================
+
+COCKROACHDB
+=================================
+
+-- add user
+> sudo adduser azrulhasni
+> sudo usermod -aG sudo azrulhasni
+
+-- add cockroach user
+> sudo adduser cockroach
+> sudo usermod -aG sudo cockroach
+> sudo mkdir /home/cockroach
+> sudo chown cockroach:cockroach /home/cockroach
+
+--as cockroach user
+> cd /opt
+> sudo wget -qO- https://binaries.cockroachdb.com/cockroach-v20.2.5.linux-amd64.tgz | tar xvz
+
+> sudo ln /opt/cockroach-v20.2.5.linux-amd64/cockroach /usr/local/bin/cockroach
+
+-- upgrade apt-get
+>  sudo apt update &&  sudo apt -y upgrade
+
+-- change ntp server
+> sudo timedatectl set-ntp no
+> timedatectl
+> sudo apt-get install ntp
+> sudo service ntp stop
+
+To make this change permanent, in the /etc/ntp.conf file, remove or comment out any lines starting with server or pool and add the following lines:
+
+server time1.google.com iburst
+server time2.google.com iburst
+server time3.google.com iburst
+server time4.google.com iburst
+
+Restart the NTP daemon:
+
+> sudo service ntp start
+> sudo service ntp reload
+
+--verify (the main server has *)
+> ntpq -p
+
+--/etc/hosts add:
+178.62.14.47 host4
+167.172.50.90 host3
+165.22.92.3  host2
+46.101.1.218 host1
+46.101.1.218 keycloak
+46.101.157.252 jmeter-server
+
+-- as cockroach user
+
+> cd /home/cockroach
+
+> cockroach cert create-ca \
+--certs-dir=certs \
+--ca-key=my-safe-directory/ca.key
+
+cockroach cert create-node \
+10.106.0.2 \
+46.101.1.218 \
+host1  \
+ubuntu-s-4vcpu-8gb-lon1-01 \
+localhost \
+127.0.0.1 \
+--certs-dir=certs \
+--ca-key=my-safe-directory/ca.key
+
+cockroach cert create-node \
+10.106.0.4 \
+46.101.52.93 \
+host2  \
+ubuntu-s-4vcpu-8gb-lon1-02\
+localhost \
+127.0.0.1 \
+--certs-dir=certs2 \
+--ca-key=my-safe-directory/ca.key
+
+cockroach cert create-node \
+10.106.0.3 \
+167.172.50.90 \
+host3  \
+ubuntu-s-4vcpu-8gb-lon1-03\
+localhost \
+127.0.0.1 \
+--certs-dir=certs3 \
+--ca-key=my-safe-directory/ca.key
+
+
+> chown -R cockroach certs
+> chown -R cockroach my-safe-directory/
+
+> chmod 700 certs/node.key
+
+=====CockroachDB with systemd=========
+
+> sudo vi /etc/systemd/system/cockroach.service
+
+---------------File:/etc/systemd/system/cockroach.service
+[Unit]
+Description=Cockroach Database cluster node
+Requires=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/cockroach
+ExecStartPre=/bin/sleep 30
+ExecStart=/usr/local/bin/cockroach start --certs-dir=certs --host=host1 --http-host=host1 --join=host1,host2,host3 --cache=25% --max-sql-memory=25%
+ExecStop=/usr/local/bin/cockroach quit --certs-dir=certs --host=host1
+Restart=always
+RestartSec=10
+RestartPreventExitStatus=0
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=cockroach
+User=ullal
+
+[Install]
+WantedBy=default.target
+-----------------------------------------------------------
+
+--Save
+
+> sudo systemctl daemon-reload
+> sudo systemctl enable cockroach
+> sudo systemctl start cockroach
+> sudo systemctl status cockroach
+
+=====CockroachDB without systemd=========
+
+cockroach start \
+--certs-dir=certs \
+--advertise-addr=host1 \
+--join=host1,host2,host3 \
+--cache=.25 \
+--max-sql-memory=.25 \
+--background
+
+cockroach start \
+--certs-dir=certs \
+--advertise-addr=host2 \
+--join=host1,host2,host3 \
+--cache=.25 \
+--max-sql-memory=.25 \
+--background
+
+cockroach start \
+--certs-dir=certs \
+--advertise-addr=host3 \
+--join=host1,host2,host3 \
+--cache=.25 \
+--max-sql-memory=.25 \
+--background
+=====================================
+
+--Create cert for DB root user
+-----------------------------
+
+> su cockroach
+
+> cockroach cert create-client \
+ root \
+ --certs-dir=certs \
+ --ca-key=my-safe-directory/ca.key
+ 
+> cockroach init --certs-dir=certs --host=host1
+
+
+Cluster successfully initialized
+
+--Create cert for DB banking user
+---------------------------------
+> su cockroach
+> cd /home/cockroach
+> cockroach cert create-client \
+    banking \
+    --certs-dir=certs \
+    --ca-key=my-safe-directory/ca.key
+    
+
+--Log in to cockroachdb
+> su cockroach
+> cd /home/cockroach
+> cockroach sql --certs-dir=certs --host=localhost
+
+
+--Setup db for keycloak
+-----------------------
+--in cockroachdb console (log in as root)
+> create database keycloakdb;
+> create user keycloak with password '1qazZAQ!';
+> grant all on database keycloakdb to keycloak;
+
+--in command line console 
+> cockroach cert create-client \
+    keycloak \
+    --certs-dir=certs \
+    --ca-key=my-safe-directory/ca.key
+    
+--copy client certs (crt and key) back to laptop
+    
+--test user
+> cockroach sql --certs-dir=certs --host=localhost --user=keycloak --database=keycloakdb
+cockroach sql --certs-dir=certs --host=host1 --user=keycloak --database=keycloakdb
+
+-- on laptop
+> openssl pkcs8 -topk8 -inform PEM -outform DER -in certs/client.keycloak.key -out certs/client.keycloak.pk8
+
+
+    
+https://www.cockroachlabs.com/docs/stable/dbeaver.html
+======================================================================
+======================================================================
+MINIO
+==============================
+
+-- add minio user
+> sudo adduser minio
+> sudo usermod -aG sudo minio
+> sudo mkdir /home/minio
+> sudo chown minio:minio /home/minio
+
+> su minio
+
+https://docs.min.io/docs/how-to-secure-access-to-minio-server-with-tls.html#generate-use-self-signed-keys-certificates
+
+1) Download generate_cert.go 
+> wget https://golang.org/src/crypto/tls/generate_cert.go?m=text
+
+2) Run (N is the host number)
+> go run generate_cert.go -ca --host "hostN" 
+
+3) Rename cert.pem to public.crt and key.pem to private.key.
+
+
+4) put public.crt and private.key into /home/minio/.minio/certs for each node
+
+> mv cert.pem /home/minio/.minio/certs/public.crt
+> mv key.pem /home/minio/.minio/certs/private.key 
+
+
+5) Collect all public.crt for each node (lets call them public1.crt ... public4.crt)
+
+6) Copy all (public1.crt ... public4.crt) to /home/minio/.minio/certs/CAs. Do this for every node. This will make sure every node has the public key of every other nodes
+> mv public1.crt /home/minio/.minio/certs/CAs/public1.crt
+> mv public2.crt /home/minio/.minio/certs/CAs/public2.crt
+> mv public3.crt /home/minio/.minio/certs/CAs/public3.crt
+> mv public4.crt /home/minio/.minio/certs/CAs/public4.crt
+
+> sudo curl https://dl.min.io/server/minio/release/linux-amd64/minio \
+  --create-dirs \
+  -o /opt/minio-binaries/minio
+> sudo chmod +x /opt/minio-binaries/minio
+
+> sudo ln /opt/minio-binaries/minio /usr/local/bin/minio
+
+--add 2 disks per node (diskN1, diskN2 with N node number)
+
+--For host1----
+> sudo chown -R minio /mnt/data12
+> sudo chmod u+rxw /mnt/data12
+> sudo chown -R minio /mnt/data11
+> sudo chmod u+rxw /mnt/data11
+
+--For host2----
+> sudo chown -R minio /mnt/data22
+> sudo chmod u+rxw /mnt/data22
+> sudo chown -R minio /mnt/data21
+> sudo chmod u+rxw /mnt/data21
+
+--For host3----
+> sudo chown -R minio /mnt/data32
+> sudo chmod u+rxw /mnt/data32
+> sudo chown -R minio /mnt/data31
+> sudo chmod u+rxw /mnt/data31
+
+--For host4----
+> sudo chown -R minio /mnt/data42
+> sudo chmod u+rxw /mnt/data42
+> sudo chown -R minio /mnt/data41
+> sudo chmod u+rxw /mnt/data41
+
+
+=====minio without systemd=======
+export PATH=$PATH:$HOME/minio-binaries/
+
+export MINIO_ACCESS_KEY=minio-admin
+export MINIO_SECRET_KEY=1qazZAQ!
+export MINIO_VOLUMES=https://host1/mnt/data11 https://host1/mnt/data12 https://host2/mnt/data21 https://host2/mnt/data22 https://host3/mnt/data31 https://host3/mnt/data32 https://host4/mnt/data41 https://host4/mnt/data42
+
+
+> nohup minio server https://host1/mnt/data11 https://host1/mnt/data12 https://host2/mnt/data21 https://host2/mnt/data22 https://host3/mnt/data31 https://host3/mnt/data32 https://host4/mnt/data41 https://host4/mnt/data42  &
+
+====minio with systemd=============
+
+> sudo vi /etc/default/minio
+
+-----Add to file: /etc/default/minio-----
+MINIO_ACCESS_KEY=minio-admin
+MINIO_SECRET_KEY=1qazZAQ!
+MINIO_VOLUMES=https://host1/mnt/data11 https://host1/mnt/data12 https://host2/mnt/data21 https://host2/mnt/data22 https://host3/mnt/data31 https://host3/mnt/data32 https://host4/mnt/data41 https://host4/mnt/data42
+--------------------------------------
+
+
+> sudo /etc/systemd/system
+> sudo wget https://raw.githubusercontent.com/minio/minio-service/master/linux-systemd/minio.service
+> sudo vi /etc/systemd/system/minio.service
+
+Change :
+[Service]
+WorkingDirectory=/home/minio
+User=minio
+Group=minio
+
+Close and save
+
+> sudo systemctl daemon-reload
+> sudo systemctl enable minio
+> sudo systemctl start minio
+> sudo systemctl status minio
+===================================
+
+
+--Add alias
+> mc --insecure alias set mystore https://host1:9000 minio-admin 1qazZAQ!
+
+ -- Alias mystore can be used to, say, add user
+> mc --insecure admin user add mystore mystoreuser 1qazZAQ!
+> mc --insecure admin policy set mystore readwrite user=mystoreuser
+
+===================================
+minio java
+----------
+--do for every node
+
+> sudo keytool -import -file "public1.crt" -keystore "$(/usr/libexec/java_home)/lib/security/cacerts" -alias "host1 minio certificate"
+
+======================================================================
+======================================================================
+Keycloak
+========
+-- add keycloak user
+> sudo adduser keycloak
+> sudo usermod -aG sudo keycloak
+> sudo mkdir /home/keycloak
+> sudo chown minio:minio /home/keycloak
+
+> su keycloak
+
+
+> cd /opt
+> sudo wget https://github.com/keycloak/keycloak/releases/download/12.0.2/keycloak-12.0.2.tar.gz
+> sudo tar -xvzf keycloak-12.0.2.tar.gz
+
+Connect to cockroachdb/keycloak
+Run the sql files (in folder freedomcloud/keycloak) - in order
+    1) keycloak_create_no_constraints.sql
+    2) keycloak_data.sql
+    3) keycloak_add_constraints.sql
+    
+Copy dir freedomcloud/keycloak/postgres to hostN /opt/keycloak-12.0.2/modules/system/layers/keycloak 
+
+Copy file freedomcloud/keycloak/standalone.xml to /opt/keycloak-12.0.2/standalone/configuration
+
+---In standalone.xml, find:
+
+    <keystore path="application.keystore" relative-to="jboss.server.config.dir" keystore-password="password" alias="host1" key-password="password" generate-self-signed-certificate-host="host1"/>
+    
+    This will be used by Keycloak to automatically create a self-signed cert. Replace alias and generate-self-signed-certificate-host with the domain name (hostN)
+
+> sudo add-apt-repository ppa:openjdk-r/ppa
+> sudo apt-get update
+> sudo apt install openjdk-11-jdk
+
+====Run Keycloak in systemd===================
+
+cat > /etc/systemd/system/keycloak.service <<EOF
+
+[Unit]
+Description=Keycloak
+After=network.target
+
+[Service]
+Type=idle
+User=keycloak
+Group=keycloak
+ExecStart=/opt/keycloak-12.0.2/bin/standalone.sh -Djboss.socket.binding.port-offset=1000 -b=0.0.0.0
+TimeoutStartSec=6000
+TimeoutStopSec=6000
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+> sudo systemctl daemon-reload
+> sudo systemctl enable keycloak
+> sudo systemctl start keycloak
+> sudo systemctl status keycloak
+
+====Run Keycloak without systemd=============
+> /opt/keycloak-12.0.2/bin/standalone.sh -Djboss.socket.binding.port-offset=1000 -b=0.0.0.0
+====================================================
+
+--on the server (in this case host1)
+> curl -k https://localhost:9443/auth/ --this will prompt Keycloak to create a self signed cert
+
+Then map in laptop's /etc/host : 
+Then point your browser to https://host1:9443/auth/
+
+===========================================================
+===========================================================
+
+sudo keytool -noprompt -import -file "cockroach.host1.cer" -keystore "$(/usr/libexec/java_home)/lib/security/cacerts" -alias "cockroach.host1" -storepass  changeit
+sudo keytool -noprompt -import -file "cockroach.host2.cer" -keystore "$(/usr/libexec/java_home)/lib/security/cacerts" -alias "cockroach.host2" -storepass  changeit
+sudo keytool -noprompt -import -file "cockroach.host3.cer" -keystore "$(/usr/libexec/java_home)/lib/security/cacerts" -alias "cockroach.host3" -storepass  changeit
+sudo keytool -noprompt -import -file "minio.host1.cer" -keystore "$(/usr/libexec/java_home)/lib/security/cacerts" -alias "minio.host1" -storepass  changeit
+sudo keytool -noprompt -import -file "minio.host2.cer" -keystore "$(/usr/libexec/java_home)/lib/security/cacerts" -alias "minio.host2" -storepass  changeit
+sudo keytool -noprompt -import -file "minio.host3.cer" -keystore "$(/usr/libexec/java_home)/lib/security/cacerts" -alias "minio.host3" -storepass  changeit
+sudo keytool -noprompt -import -file "keycloak.host1.cer" -keystore "$(/usr/libexec/java_home)/lib/security/cacerts" -alias "keycloak.host1" -storepass  changeit
+sudo keytool -noprompt -import -file "keycloak.host2.cer" -keystore "$(/usr/libexec/java_home)/lib/security/cacerts" -alias "keycloak.host2" -storepass  changeit
+sudo keytool -noprompt -import -file "keycloak.host3.cer" -keystore "$(/usr/libexec/java_home)/lib/security/cacerts" -alias "keycloak.host3" -storepass  changeit
+
+
+
+
+
+
+/usr/lib/jvm/java-11-openjdk-amd64/lib/security/cacerts
+
+
+
+
+export TOKEN=`curl -k --location --request POST 'https://host1:9443/auth/realms/banking/protocol/openid-connect/token' \
+--header 'Content-Type: application/x-www-form-urlencoded' \
+--header 'Authorization: Basic Og==' \
+--data-urlencode 'username=donald.duck' \
+--data-urlencode 'password=abc123' \
+--data-urlencode 'client_id=bankingclient' \
+--data-urlencode 'client_secret=b279d7ca-18b7-4b98-9bc4-1d1605649e74' \
+--data-urlencode 'grant_type=password'| jq -r .access_token`
+
+export TOKEN=`curl -k --location --request POST 'https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token' \
+--header 'Content-Type: application/x-www-form-urlencoded' \
+--header 'Authorization: Basic Og==' \
+--data-urlencode 'username=donald.duck' \
+--data-urlencode 'password=abc123' \
+--data-urlencode 'client_id=bankingclient' \
+--data-urlencode 'client_secret=b279d7ca-18b7-4b98-9bc4-1d1605649e74' \
+--data-urlencode 'grant_type=password'| jq -r .access_token`
+
+curl  --header 'Content-Type: application/json' --header 'Accept: application/json' --header "Authorization: Bearer $TOKEN"  'https://yourserverip:8080/api/yourendpoint'
+
+curl -v -X GET "http://localhost:18080/api/transactions/1" -H "accept: */*" -H "Authorization: Bearer $TOKEN"  
+
+====================================================
+====================================================
+Deployment
+
+Keycloak
+    - Create domain keycloak in /etc/host pointing to 127.0.0.1 on every  server machine 
+        and keycloak poining to, say, server host2 for testing machine
+        This is to 'trick' Keycloak issuer-uri to think that we acquire our token from the same server
+
+
+Transfer all public certs to server
+
+export CACERTS_LOC=/usr/lib/jvm/java-11-openjdk-amd64/lib/security/cacerts
+
+sudo keytool -noprompt -import -file "cockroach.host1.cer" -keystore "$CACERTS_LOC" -alias "cockroach.host1" -storepass  changeit
+sudo keytool -noprompt -import -file "cockroach.host2.cer" -keystore "$CACERTS_LOC" -alias "cockroach.host2" -storepass  changeit
+sudo keytool -noprompt -import -file "cockroach.host3.cer" -keystore "$CACERTS_LOC" -alias "cockroach.host3" -storepass  changeit
+sudo keytool -noprompt -import -file "minio.host1.cer" -keystore "$CACERTS_LOC" -alias "minio.host1" -storepass  changeit
+sudo keytool -noprompt -import -file "minio.host2.cer" -keystore "$CACERTS_LOC" -alias "minio.host2" -storepass  changeit
+sudo keytool -noprompt -import -file "minio.host3.cer" -keystore "$CACERTS_LOC" -alias "minio.host3" -storepass  changeit
+sudo keytool -noprompt -import -file "keycloak.host1.cer" -keystore "$CACERTS_LOC" -alias "keycloak.host1" -storepass  changeit
+sudo keytool -noprompt -import -file "keycloak.host2.cer" -keystore "$CACERTS_LOC" -alias "keycloak.host2" -storepass  changeit
+sudo keytool -noprompt -import -file "keycloak.host3.cer" -keystore "$CACERTS_LOC" -alias "keycloak.host3" -storepass  changeit
+
+nohup java -jar /opt/banking/keymicobank-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod --spring.config.name=application,application-prod --spring.config.location=file:///home/azrulhasni/config/ &
+
+wget https://downloads.apache.org//jmeter/binaries/apache-jmeter-5.4.1.tgz
+tar xvzf apache-jmeter-5.4.1.tgz
+mv apache-jmeter-5.4.1 jmeter
+cd jmeter/lib/ext
+wget https://jmeter-plugins.org/get/
+
+jmeter/bin/jmeter -n  -t keymico.jmeter.jmx
+
+
+====================================================
+====================================================
+Nginx
+-----
+
+-- Install
+> sudo apt install nginx
+> sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt
+
+-- Common Name (e.g. server FQDN or YOUR name) []:server_IP_address
+
+> sudo openssl dhparam -out /etc/nginx/dhparam.pem 4096
+> sudo vi /etc/nginx/snippets/self-signed.conf
+
+#In the file /etc/nginx/snippets/self-signed.conf
+ssl_certificate /etc/ssl/certs/nginx-selfsigned.crt;
+ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
+
+> sudo nano /etc/nginx/snippets/ssl-params.conf
+
+#--------/etc/nginx/snippets/ssl-params.conf------------
+ssl_protocols TLSv1.2;
+ssl_prefer_server_ciphers on;
+ssl_dhparam /etc/nginx/dhparam.pem;
+ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384;
+ssl_ecdh_curve secp384r1; # Requires nginx >= 1.1.0
+ssl_session_timeout  10m;
+ssl_session_cache shared:SSL:10m;
+ssl_session_tickets off; # Requires nginx >= 1.5.9
+ssl_stapling on; # Requires nginx >= 1.3.7
+ssl_stapling_verify on; # Requires nginx => 1.3.7
+resolver 8.8.8.8 8.8.4.4 valid=300s;
+resolver_timeout 5s;
+# Disable strict transport security for now. You can uncomment the following
+# line if you understand the implications.
+# add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload";
+add_header X-Frame-Options DENY;
+add_header X-Content-Type-Options nosniff;
+add_header X-XSS-Protection "1; mode=block";
+#-------------------------------------------------------
+
+> sudo cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.bak
+> sudo vi /etc/nginx/sites-available/default
+
+##--------/etc/nginx/sites-available/default------------
+# Default server configuration
+#
+# Default server configuration
+#
+ upstream keymico {
+        server host1:18080 max_fails=3 fail_timeout=3600s; #after 3 fails, take out the server for an hoiur
+        server host2:18080 max_fails=3 fail_timeout=3600s;
+        server host3:18080 max_fails=3 fail_timeout=3600s;
+    }
+server {
+#       listen 80 default_server;
+#       listen [::]:80 default_server;
+
+        # SSL configuration
+        #
+        listen 8443 ssl default_server;
+        listen [::]:8443 ssl default_server;
+        include snippets/self-signed.conf;
+        include snippets/ssl-params.conf;
+
+        root /var/www/html;
+
+        # Add index.php to the list if you are using PHP
+        index index.html index.htm index.nginx-debian.html;
+
+        server_name _;
+
+        location / {
+                # First attempt to serve request as file, then
+                # as directory, then fall back to displaying a 404.
+                proxy_pass http://keymico;
+        }
+}
+#-------------------------------------------------------
+
+
+> nginx -t
+> sudo systemctl restart nginx

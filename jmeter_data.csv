@@ -1,0 +1,174 @@
+timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+1613909251007,9622,Keycloak call to get token - PROD,200,OK,Http URL/API Test 1-1,text,true,,2871,391,2,2,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,9622,0,8375
+1613909260007,3217,Keycloak call to get token - PROD,200,OK,Http URL/API Test 1-2,text,true,,2871,391,2,2,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,3217,0,2542
+1613909269012,3378,Keycloak call to get token - PROD,200,OK,Http URL/API Test 1-3,text,true,,2871,391,3,3,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,3378,0,2740
+1613909270634,6542,Add transaction data - PROD,201,Created,Http URL/API Test 1-1,text,true,,1569,139367,3,3,https://host4:8443/api/transactions/,6542,0,1745
+1613909273225,7136,Add transaction data - PROD,201,Created,Http URL/API Test 1-2,text,true,,1569,139367,4,4,https://host4:8443/api/transactions/,7136,0,3760
+1613909278006,3474,Keycloak call to get token - PROD,200,OK,Http URL/API Test 1-4,text,true,,2871,391,4,4,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,3474,0,2347
+1613909287007,2386,Keycloak call to get token - PROD,200,OK,Http URL/API Test 1-5,text,true,,2871,391,5,5,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,2386,0,1437
+1613909287178,9854,Get transaction data - PROD,200,OK,Http URL/API Test 1-1,text,true,,138935,1593,6,6,https://host4:8443/api/transactions/47619,1373,0,0
+1613909282396,16580,Add transaction data - PROD,201,Created,Http URL/API Test 1-3,text,true,,1569,139367,6,6,https://host4:8443/api/transactions/,16580,0,3379
+1613909296008,3503,Keycloak call to get token - PROD,200,OK,Http URL/API Test 1-6,text,true,,2871,391,6,6,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,3503,0,2765
+1613909290368,11355,Get transaction data - PROD,200,OK,Http URL/API Test 1-2,text,true,,138936,1593,6,6,https://host4:8443/api/transactions/47431,5745,0,0
+1613909291484,10241,Add transaction data - PROD,201,Created,Http URL/API Test 1-4,text,true,,1569,139367,6,6,https://host4:8443/api/transactions/,10241,0,6475
+1613909299395,5415,Add transaction data - PROD,201,Created,Http URL/API Test 1-5,text,true,,1569,139367,6,6,https://host4:8443/api/transactions/,5415,0,2963
+1613909305014,1855,Keycloak call to get token - PROD,200,OK,Http URL/API Test 1-7,text,true,,2871,391,7,7,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,1855,0,1327
+1613909307037,1456,,201,Created,Http URL/API Test 1-1,text,true,,1569,139367,7,7,https://host4:8443/api/transactions/,1456,0,0
+1613909308979,4253,Get transaction data - PROD,200,OK,Http URL/API Test 1-3,text,true,,138927,1593,7,7,https://host4:8443/api/transactions/47432,1910,0,0
+1613909311727,2581,,201,Created,Http URL/API Test 1-2,text,true,,1569,139367,8,8,https://host4:8443/api/transactions/,2581,0,0
+1613909309513,5231,Add transaction data - PROD,201,Created,Http URL/API Test 1-6,text,true,,1569,139367,8,8,https://host4:8443/api/transactions/,5231,0,2572
+1613909314008,1873,Keycloak call to get token - PROD,200,OK,Http URL/API Test 1-8,text,true,,2871,391,8,8,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,1873,0,1144
+1613909311727,5091,Get transaction data - PROD,200,OK,Http URL/API Test 1-4,text,true,,138920,1593,8,8,https://host4:8443/api/transactions/47529,1281,0,0
+1613909316873,7018,Add transaction data - PROD,201,Created,Http URL/API Test 1-7,text,true,,1569,139367,9,9,https://host4:8443/api/transactions/,7018,0,3999
+1613909326819,4574,,201,Created,Http URL/API Test 1-4,text,true,,1569,139367,9,9,https://host4:8443/api/transactions/,4574,0,0
+1613909318497,13270,,200,OK,Http URL/API Test 1-1,text,true,,138928,1593,9,9,https://host4:8443/api/transactions/47433,3611,0,0
+1613909314813,17631,Get transaction data - PROD,200,OK,Http URL/API Test 1-5,text,true,,138928,1593,10,10,https://host4:8443/api/transactions/47620,2306,0,0
+1613909323005,9848,Keycloak call to get token - PROD,200,OK,Http URL/API Test 1-9,text,true,,2871,391,10,10,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,9848,0,1685
+1613909323235,10268,,201,Created,Http URL/API Test 1-3,text,true,,1569,139367,10,10,https://host4:8443/api/transactions/,10268,0,0
+1613909332005,1983,Keycloak call to get token - PROD,200,OK,Http URL/API Test 1-10,text,true,,2871,391,10,10,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,1983,0,1494
+1613909324311,10030,,200,OK,Http URL/API Test 1-2,text,true,,138944,1593,10,10,https://host4:8443/api/transactions/47434,5937,0,0
+1613909325885,9437,Add transaction data - PROD,201,Created,Http URL/API Test 1-8,text,true,,1569,139367,10,10,https://host4:8443/api/transactions/,9437,0,5961
+1613909333894,5144,Get transaction data - PROD,200,OK,Http URL/API Test 1-7,text,true,,138928,1593,10,10,https://host4:8443/api/transactions/47531,917,0,0
+1613909341009,2292,Keycloak call to get token - PROD,200,OK,Http URL/API Test 1-11,text,true,,2871,391,11,11,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,2292,0,1405
+1613909342445,1509,,201,Created,Http URL/API Test 1-5,text,true,,1569,139367,11,11,https://host4:8443/api/transactions/,1509,0,0
+1613909324745,25138,Get transaction data - PROD,200,OK,Http URL/API Test 1-6,text,true,,138928,1593,11,11,https://host4:8443/api/transactions/47530,8516,0,0
+1613909349042,2942,,201,Created,Http URL/API Test 1-7,text,true,,1569,139367,12,12,https://host4:8443/api/transactions/,2942,0,0
+1613909341394,11839,,200,OK,Http URL/API Test 1-4,text,true,,138952,1593,12,12,https://host4:8443/api/transactions/47532,1030,0,0
+1613909341768,11477,,201,Created,Http URL/API Test 1-1,text,true,,1569,139367,12,12,https://host4:8443/api/transactions/,11477,0,2443
+1613909343993,9287,Add transaction data - PROD,201,Created,Http URL/API Test 1-10,text,true,,1569,139367,12,12,https://host4:8443/api/transactions/,9287,0,5737
+1613909350005,7172,Keycloak call to get token - PROD,200,OK,Http URL/API Test 1-12,text,true,,2871,391,12,12,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,7172,0,3623
+1613909345324,12870,Get transaction data - PROD,200,OK,Http URL/API Test 1-8,text,true,,138943,1593,12,12,https://host4:8443/api/transactions/47533,4666,0,0
+1613909342858,15389,Add transaction data - PROD,201,Created,Http URL/API Test 1-9,text,true,,1569,139367,12,12,https://host4:8443/api/transactions/,15389,0,6184
+1613909353957,5572,,200,OK,Http URL/API Test 1-5,text,true,,138928,1593,13,13,https://host4:8443/api/transactions/47435,3320,0,0
+1613909344345,15189,,201,Created,Http URL/API Test 1-2,text,true,,1569,139367,13,13,https://host4:8443/api/transactions/,15189,0,12766
+1613909359006,2043,Keycloak call to get token - PROD,200,OK,Http URL/API Test 1-13,text,true,,2871,391,13,13,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,2043,0,1277
+1613909359888,1327,,201,Created,Http URL/API Test 1-6,text,true,,1569,139367,13,13,https://host4:8443/api/transactions/,1327,0,0
+1613909343506,18763,,200,OK,Http URL/API Test 1-3,text,true,,138936,1593,13,13,https://host4:8443/api/transactions/47621,13617,0,4341
+1613909353302,12680,Add transaction data - PROD,Non HTTP response code: org.apache.http.conn.ConnectTimeoutException,Non HTTP response message: Connect to host4:8443 [host4/178.62.14.47] failed: Read timed out,Http URL/API Test 1-11,text,false,,3473,0,13,13,https://host4:8443/api/transactions/,0,0,12680
+1613909363282,4817,Get transaction data - PROD,200,OK,Http URL/API Test 1-10,text,true,,138936,1593,14,14,https://host4:8443/api/transactions/47534,3349,0,0
+1613909363239,6221,,201,Created,Http URL/API Test 1-4,text,true,,1569,139367,14,14,https://host4:8443/api/transactions/,6221,0,3889
+1613909367183,7481,Add transaction data - PROD,201,Created,Http URL/API Test 1-12,text,true,,1569,139367,14,14,https://host4:8443/api/transactions/,7481,0,1294
+1613909368195,6817,,201,Created,Http URL/API Test 1-8,text,true,,1569,139367,14,14,https://host4:8443/api/transactions/,6817,0,0
+1613909368010,7108,Keycloak call to get token - PROD,200,OK,Http URL/API Test 1-14,text,true,,2871,391,14,14,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,7108,0,1330
+1613909372271,3953,,201,Created,Http URL/API Test 1-3,text,true,,1569,139367,14,14,https://host4:8443/api/transactions/,3953,0,0
+1613909371054,7048,Add transaction data - PROD,201,Created,Http URL/API Test 1-13,text,true,,1569,139367,15,15,https://host4:8443/api/transactions/,7048,0,4173
+1613909368253,10352,Get transaction data - PROD,200,OK,Http URL/API Test 1-9,text,true,,138944,1593,15,15,https://host4:8443/api/transactions/47535,1745,0,0
+1613909369533,9076,,201,Created,Http URL/API Test 1-5,text,true,,1569,139367,15,15,https://host4:8443/api/transactions/,9076,0,6118
+1613909375984,2856,Get transaction data - PROD,200,OK,Http URL/API Test 1-11,text,true,,7081,1588,15,15,https://host4:8443/api/transactions/,2856,0,2283
+1613909361986,17225,,200,OK,Http URL/API Test 1-7,text,true,,138976,1593,15,15,https://host4:8443/api/transactions/47436,4837,0,0
+1613909377010,3338,Keycloak call to get token - PROD,200,OK,Http URL/API Test 1-15,text,true,,2871,391,15,15,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,3338,0,2305
+1613909378100,2252,,201,Created,Http URL/API Test 1-10,text,true,,1569,139367,15,15,https://host4:8443/api/transactions/,2252,0,0
+1613909363250,20683,,200,OK,Http URL/API Test 1-1,text,true,,138936,1593,15,15,https://host4:8443/api/transactions/47622,3372,0,0
+1613909388609,5277,,201,Created,Http URL/API Test 1-9,text,true,,1569,139367,16,16,https://host4:8443/api/transactions/,5277,0,0
+1613909386009,8167,Keycloak call to get token - PROD,200,OK,Http URL/API Test 1-16,text,true,,2871,391,16,16,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,8167,0,7525
+1613909388840,6426,,201,Created,Http URL/API Test 1-11,text,true,,1569,139367,17,17,https://host4:8443/api/transactions/,6426,0,0
+1613909389213,8933,,201,Created,Http URL/API Test 1-7,text,true,,1569,139367,17,17,https://host4:8443/api/transactions/,8933,0,4539
+1613909393935,4490,,201,Created,Http URL/API Test 1-1,text,true,,1569,139367,17,17,https://host4:8443/api/transactions/,4490,0,0
+1613909385119,13709,Add transaction data - PROD,Non HTTP response code: org.apache.http.conn.ConnectTimeoutException,Non HTTP response message: Connect to host4:8443 [host4/178.62.14.47] failed: Read timed out,Http URL/API Test 1-14,text,false,,3473,0,17,17,https://host4:8443/api/transactions/,0,0,13709
+1613909395005,5999,Keycloak call to get token - PROD,200,OK,Http URL/API Test 1-17,text,true,,2871,391,17,17,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,5999,0,3360
+1613909390351,12110,Add transaction data - PROD,201,Created,Http URL/API Test 1-15,text,true,,1569,139367,17,17,https://host4:8443/api/transactions/,12110,0,5746
+1613909369540,33808,,200,OK,Http URL/API Test 1-2,text,true,,138920,1593,17,17,https://host4:8443/api/transactions/47623,8849,0,0
+1613909388103,15977,Get transaction data - PROD,200,OK,Http URL/API Test 1-13,text,true,,138935,1593,18,18,https://host4:8443/api/transactions/47626,5662,0,0
+1613909404005,1918,Keycloak call to get token - PROD,200,OK,Http URL/API Test 1-18,text,true,,2871,391,18,18,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,1918,0,1197
+1613909371220,35464,,200,OK,Http URL/API Test 1-6,text,true,,138928,1593,18,18,https://host4:8443/api/transactions/47437,5373,0,4017
+1613909379464,27270,,200,OK,Http URL/API Test 1-4,text,true,,138936,1593,18,18,https://host4:8443/api/transactions/47624,898,0,0
+1613909404178,6347,Add transaction data - PROD,201,Created,Http URL/API Test 1-16,text,true,,1569,139367,18,18,https://host4:8443/api/transactions/,6347,0,1155
+1613909403889,7517,,200,OK,Http URL/API Test 1-9,text,true,,138936,1593,18,18,https://host4:8443/api/transactions/47538,2242,0,1212
+1613909408832,3288,Get transaction data - PROD,200,OK,Http URL/API Test 1-14,text,true,,7081,1588,18,18,https://host4:8443/api/transactions/,3288,0,2690
+1613909385016,27665,,200,OK,Http URL/API Test 1-8,text,true,,138968,1593,18,18,https://host4:8443/api/transactions/47625,18248,0,0
+1613909408148,6008,,200,OK,Http URL/API Test 1-7,text,true,,138928,1593,19,19,https://host4:8443/api/transactions/47440,2907,0,0
+1613909405270,9364,,200,OK,Http URL/API Test 1-11,text,true,,138928,1593,19,19,https://host4:8443/api/transactions/47627,1566,0,0
+1613909390353,24682,,200,OK,Http URL/API Test 1-10,text,true,,138968,1593,19,19,https://host4:8443/api/transactions/47439,4771,0,0
+1613909413013,2221,Keycloak call to get token - PROD,200,OK,Http URL/API Test 1-19,text,true,,2871,391,19,19,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,2221,0,1705
+1613909414080,1253,,201,Created,Http URL/API Test 1-13,text,true,,1569,139367,19,19,https://host4:8443/api/transactions/,1253,0,0
+1613909411015,8970,Add transaction data - PROD,201,Created,Http URL/API Test 1-17,text,true,,1569,139367,19,19,https://host4:8443/api/transactions/,8970,0,1177
+1613909416736,3611,,201,Created,Http URL/API Test 1-4,text,true,,1569,139367,19,19,https://host4:8443/api/transactions/,3611,0,0
+1613909384668,36104,Get transaction data - PROD,200,OK,Http URL/API Test 1-12,text,true,,138944,1593,19,19,https://host4:8443/api/transactions/47536,13656,0,0
+1613909388613,32501,,200,OK,Http URL/API Test 1-5,text,true,,138928,1593,19,19,https://host4:8443/api/transactions/47438,23865,0,0
+1613909412466,9042,Get transaction data - PROD,200,OK,Http URL/API Test 1-15,text,true,,138920,1593,19,19,https://host4:8443/api/transactions/47628,2211,0,0
+1613909415927,6502,Add transaction data - PROD,201,Created,Http URL/API Test 1-18,text,true,,1569,139367,20,20,https://host4:8443/api/transactions/,6502,0,4083
+1613909416689,6011,,201,Created,Http URL/API Test 1-6,text,true,,1569,139367,20,20,https://host4:8443/api/transactions/,6011,0,0
+1613909421411,2504,,201,Created,Http URL/API Test 1-9,text,true,,1569,139367,20,20,https://host4:8443/api/transactions/,2504,0,0
+1613909386228,37804,,200,OK,Http URL/API Test 1-3,text,true,,138928,1593,20,20,https://host4:8443/api/transactions/47537,2575,0,0
+1613909422122,2010,,201,Created,Http URL/API Test 1-14,text,true,,1569,139367,20,20,https://host4:8443/api/transactions/,2010,0,0
+1613909422008,6943,Keycloak call to get token - PROD,200,OK,Http URL/API Test 1-20,text,true,,2871,391,20,20,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,6943,0,2464
+1613909424635,4373,,201,Created,Http URL/API Test 1-11,text,true,,1569,139367,20,20,https://host4:8443/api/transactions/,4373,0,0
+1613909424161,4871,,201,Created,Http URL/API Test 1-7,text,true,,1569,139367,20,20,https://host4:8443/api/transactions/,4871,0,0
+1613909422683,8920,,201,Created,Http URL/API Test 1-8,text,true,,1569,139367,21,21,https://host4:8443/api/transactions/,8920,0,1364
+1613909431511,2369,,201,Created,Http URL/API Test 1-15,text,true,,1569,139367,21,21,https://host4:8443/api/transactions/,2369,0,0
+1613909425236,8826,Add transaction data - PROD,201,Created,Http URL/API Test 1-19,text,true,,1569,139367,21,21,https://host4:8443/api/transactions/,8826,0,4427
+1613909413348,22190,,Non HTTP response code: java.net.SocketTimeoutException,Non HTTP response message: Read timed out,Http URL/API Test 1-2,text,false,,3145,0,21,21,https://host4:8443/api/transactions/,0,0,1717
+1613909430776,9381,,201,Created,Http URL/API Test 1-12,text,true,,1569,139367,22,22,https://host4:8443/api/transactions/,9381,0,3359
+1613909431007,10880,Keycloak call to get token - PROD,200,OK,Http URL/API Test 1-21,text,true,,2871,391,22,22,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,10880,0,3160
+1613909420527,21824,Get transaction data - PROD,200,OK,Http URL/API Test 1-16,text,true,,138928,1593,22,22,https://host4:8443/api/transactions/47629,1969,0,0
+1613909425036,18017,,201,Created,Http URL/API Test 1-10,text,true,,1569,139367,22,22,https://host4:8443/api/transactions/,18017,0,5142
+1613909438955,4113,Add transaction data - PROD,201,Created,Http URL/API Test 1-20,text,true,,1569,139367,22,22,https://host4:8443/api/transactions/,4113,0,1326
+1613909429989,13420,Get transaction data - PROD,200,OK,Http URL/API Test 1-17,text,true,,138928,1593,22,22,https://host4:8443/api/transactions/47441,3072,0,0
+1613909431117,12688,,201,Created,Http URL/API Test 1-5,text,true,,1569,139367,22,22,https://host4:8443/api/transactions/,12688,0,3135
+1613909433919,14608,,200,OK,Http URL/API Test 1-9,text,true,,138920,1593,22,22,https://host4:8443/api/transactions/47631,5054,0,0
+1613909440006,8726,Keycloak call to get token - PROD,200,OK,Http URL/API Test 1-22,text,true,,2871,391,22,22,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,8726,0,2516
+1613909425334,23447,,200,OK,Http URL/API Test 1-13,text,true,,138920,1593,22,22,https://host4:8443/api/transactions/47540,4859,0,0
+1613909445539,3479,,200,OK,Http URL/API Test 1-2,text,true,,7081,1588,23,23,https://host4:8443/api/transactions/,3479,0,2848
+1613909439009,12585,,200,OK,Http URL/API Test 1-11,text,true,,138951,1593,23,23,https://host4:8443/api/transactions/47632,2827,0,1422
+1613909432432,20991,Get transaction data - PROD,200,OK,Http URL/API Test 1-18,text,true,,138920,1593,23,23,https://host4:8443/api/transactions/47443,1802,0,0
+1613909449008,6931,Keycloak call to get token - PROD,200,OK,Http URL/API Test 1-23,text,true,,2871,391,23,23,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,6931,0,1473
+1613909452354,4448,,201,Created,Http URL/API Test 1-16,text,true,,1569,139367,23,23,https://host4:8443/api/transactions/,4448,0,0
+1613909434033,23529,,201,Created,Http URL/API Test 1-3,text,true,,1569,139367,23,23,https://host4:8443/api/transactions/,23529,0,12981
+1613909432701,25760,,200,OK,Http URL/API Test 1-6,text,true,,138920,1593,24,24,https://host4:8443/api/transactions/47541,16740,0,6785
+1613909451890,9411,Add transaction data - PROD,201,Created,Http URL/API Test 1-21,text,true,,1569,139367,24,24,https://host4:8443/api/transactions/,9411,0,4943
+1613909430350,31055,,200,OK,Http URL/API Test 1-4,text,true,,138928,1593,24,24,https://host4:8443/api/transactions/47442,10869,0,8581
+1613909441604,19882,,200,OK,Http URL/API Test 1-8,text,true,,138928,1593,24,24,https://host4:8443/api/transactions/47445,2021,0,0
+1613909459019,6666,,201,Created,Http URL/API Test 1-2,text,true,,1569,139367,24,24,https://host4:8443/api/transactions/,6666,0,0
+1613909458528,7999,,201,Created,Http URL/API Test 1-9,text,true,,1569,139367,24,24,https://host4:8443/api/transactions/,7999,0,0
+1613909461599,8407,,201,Created,Http URL/API Test 1-11,text,true,,1569,139367,25,25,https://host4:8443/api/transactions/,8407,0,0
+1613909443885,27068,,200,OK,Http URL/API Test 1-15,text,true,,138920,1593,25,25,https://host4:8443/api/transactions/47446,6352,0,0
+1613909463426,11547,,201,Created,Http URL/API Test 1-18,text,true,,1569,139367,25,25,https://host4:8443/api/transactions/,11547,0,0
+1613909458004,18911,Keycloak call to get token - PROD,200,OK,Http URL/API Test 1-24,text,true,,2871,391,26,26,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,18911,0,3291
+1613909458735,19159,Add transaction data - PROD,Non HTTP response code: org.apache.http.conn.ConnectTimeoutException,Non HTTP response message: Connect to host4:8443 [host4/178.62.14.47] failed: Read timed out,Http URL/API Test 1-22,text,false,,3473,0,26,26,https://host4:8443/api/transactions/,0,0,19159
+1613909468465,9820,,201,Created,Http URL/API Test 1-6,text,true,,1569,139367,26,26,https://host4:8443/api/transactions/,9820,0,0
+1613909476007,3927,Keycloak call to get token - PROD,200,OK,Http URL/API Test 1-26,text,true,,2871,391,26,26,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,3927,0,2772
+1613909466805,14949,,Non HTTP response code: org.apache.http.conn.ConnectTimeoutException,Non HTTP response message: Connect to host4:8443 [host4/178.62.14.47] failed: Read timed out,Http URL/API Test 1-16,text,false,,3473,0,26,26,https://host4:8443/api/transactions/47449,0,0,14949
+1613909471409,13222,,201,Created,Http URL/API Test 1-4,text,true,,1569,139367,26,26,https://host4:8443/api/transactions/,13222,0,0
+1613909453411,32234,,201,Created,Http URL/API Test 1-17,text,true,,1569,139367,27,27,https://host4:8443/api/transactions/,32234,0,0
+1613909444067,42293,Get transaction data - PROD,200,OK,Http URL/API Test 1-19,text,true,,138928,1593,27,27,https://host4:8443/api/transactions/47543,6012,0,0
+1613909465943,20768,Add transaction data - PROD,201,Created,Http URL/API Test 1-23,text,true,,1569,139367,27,27,https://host4:8443/api/transactions/,20768,0,9086
+1613909453054,34941,,Non HTTP response code: java.net.SocketTimeoutException,Non HTTP response message: Read timed out,Http URL/API Test 1-10,text,false,,2565,0,27,27,https://host4:8443/api/transactions/47447,4291,0,0
+1613909408427,79725,,Non HTTP response code: java.net.SocketTimeoutException,Non HTTP response message: Read timed out,Http URL/API Test 1-1,text,false,,2565,0,27,27,https://host4:8443/api/transactions/47539,15806,0,11981
+1613909480954,7482,,201,Created,Http URL/API Test 1-15,text,true,,1569,139367,27,27,https://host4:8443/api/transactions/,7482,0,4824
+1613909458786,30133,,201,Created,Http URL/API Test 1-13,text,true,,1569,139367,27,27,https://host4:8443/api/transactions/,30133,0,8684
+1613909471306,20004,Get transaction data - PROD,Non HTTP response code: java.net.SocketTimeoutException,Non HTTP response message: Read timed out,Http URL/API Test 1-21,text,false,,3145,0,27,27,https://host4:8443/api/transactions/47633,0,0,0
+1613909471488,20002,,Non HTTP response code: java.net.SocketTimeoutException,Non HTTP response message: Read timed out,Http URL/API Test 1-8,text,false,,3145,0,27,27,https://host4:8443/api/transactions/,0,0,0
+1613909480011,15658,,200,OK,Http URL/API Test 1-11,text,true,,138944,1593,28,28,https://host4:8443/api/transactions/47851,5649,0,0
+1613909475688,20198,,200,OK,Http URL/API Test 1-2,text,true,,138928,1593,28,28,https://host4:8443/api/transactions/47450,2965,0,0
+1613909439036,58480,,200,OK,Http URL/API Test 1-7,text,true,,138936,1593,28,28,https://host4:8443/api/transactions/47542,991,0,0
+1613909487896,14515,Get transaction data - PROD,Non HTTP response code: org.apache.http.conn.ConnectTimeoutException,Non HTTP response message: Connect to host4:8443 [host4/178.62.14.47] failed: Read timed out,Http URL/API Test 1-22,text,false,,3473,0,28,28,https://host4:8443/api/transactions/,0,0,14515
+1613909495650,10902,,Non HTTP response code: org.apache.http.conn.ConnectTimeoutException,Non HTTP response message: Connect to host4:8443 [host4/178.62.14.47] failed: Read timed out,Http URL/API Test 1-17,text,false,,3473,0,29,29,https://host4:8443/api/transactions/47852,0,0,10902
+1613909494631,11924,,Non HTTP response code: org.apache.http.conn.ConnectTimeoutException,Non HTTP response message: Connect to host4:8443 [host4/178.62.14.47] failed: Read timed out,Http URL/API Test 1-4,text,false,,3473,0,29,29,https://host4:8443/api/transactions/47635,0,0,11924
+1613909434135,77010,,200,OK,Http URL/API Test 1-14,text,true,,138951,1593,29,29,https://host4:8443/api/transactions/47444,8861,0,0
+1613909501313,10001,,Non HTTP response code: org.apache.http.conn.ConnectTimeoutException,Non HTTP response message: Connect to host4:8443 [host4/178.62.14.47] failed: Connect timed out,Http URL/API Test 1-21,text,false,,2613,0,29,29,https://host4:8443/api/transactions/,0,0,10001
+1613909496365,14970,,Non HTTP response code: org.apache.http.conn.ConnectTimeoutException,Non HTTP response message: Connect to host4:8443 [host4/178.62.14.47] failed: Read timed out,Http URL/API Test 1-19,text,false,,3473,0,29,29,https://host4:8443/api/transactions/,0,0,14970
+1613909501493,10888,,Non HTTP response code: org.apache.http.conn.ConnectTimeoutException,Non HTTP response message: Connect to host4:8443 [host4/178.62.14.47] failed: Read timed out,Http URL/API Test 1-8,text,false,,3473,0,30,30,https://host4:8443/api/transactions/,0,0,10888
+1613909491758,21222,,201,Created,Http URL/API Test 1-16,text,true,,1569,139367,30,30,https://host4:8443/api/transactions/,21222,0,2434
+1613909496716,18480,Get transaction data - PROD,Non HTTP response code: javax.net.ssl.SSLException,Non HTTP response message: Socket closed,Http URL/API Test 1-23,text,false,,3692,0,30,30,https://host4:8443/api/transactions/47550,0,0,0
+1613909498437,16766,,Non HTTP response code: javax.net.ssl.SSLException,Non HTTP response message: Socket closed,Http URL/API Test 1-15,text,false,,3692,0,29,29,https://host4:8443/api/transactions/47636,0,0,0
+1613909498922,16281,,Non HTTP response code: javax.net.ssl.SSLException,Non HTTP response message: Socket closed,Http URL/API Test 1-13,text,false,,3827,0,29,29,https://host4:8443/api/transactions/47549,0,0,0
+1613909505888,9317,,Non HTTP response code: javax.net.ssl.SSLException,Non HTTP response message: Socket closed,Http URL/API Test 1-2,text,false,,4360,0,26,26,https://host4:8443/api/transactions/,0,0,9316
+1613909467008,48200,Keycloak call to get token - PROD,Non HTTP response code: javax.net.ssl.SSLException,Non HTTP response message: Socket closed,Http URL/API Test 1-25,text,false,,3692,0,24,24,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,0,0,7937
+1613909498153,17055,,Non HTTP response code: javax.net.ssl.SSLException,Non HTTP response message: Socket closed,Http URL/API Test 1-1,text,false,,4460,0,23,23,https://host4:8443/api/transactions/,0,0,17055
+1613909512011,3198,Keycloak call to get token - PROD,Non HTTP response code: javax.net.ssl.SSLException,Non HTTP response message: Socket closed,Http URL/API Test 1-30,text,false,,4360,0,24,24,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,0,0,3198
+1613909512412,2797,,Non HTTP response code: javax.net.ssl.SSLException,Non HTTP response message: Socket closed,Http URL/API Test 1-22,text,false,,4360,0,22,22,https://host4:8443/api/transactions/,0,0,2797
+1613909453806,61402,,Non HTTP response code: javax.net.ssl.SSLException,Non HTTP response message: Socket closed,Http URL/API Test 1-5,text,false,,2915,0,21,21,https://host4:8443/api/transactions/47545,31883,0,0
+1613909488288,26923,,Non HTTP response code: javax.net.ssl.SSLException,Non HTTP response message: Socket closed,Http URL/API Test 1-6,text,false,,3010,0,20,20,https://host4:8443/api/transactions/47634,6328,0,0
+1613909507518,7692,,Non HTTP response code: java.net.SocketException,Non HTTP response message: Socket closed,Http URL/API Test 1-7,text,false,,2335,0,20,20,https://host4:8443/api/transactions/,0,0,7692
+1613909450161,65049,,Non HTTP response code: javax.net.ssl.SSLException,Non HTTP response message: Socket closed,Http URL/API Test 1-12,text,false,,3010,0,18,18,https://host4:8443/api/transactions/47544,4592,0,0
+1613909476529,38682,,Non HTTP response code: javax.net.ssl.SSLException,Non HTTP response message: Socket closed,Http URL/API Test 1-9,text,false,,2915,0,17,17,https://host4:8443/api/transactions/47547,8389,0,2671
+1613909494008,21204,Keycloak call to get token - PROD,Non HTTP response code: javax.net.ssl.SSLException,Non HTTP response message: Socket closed,Http URL/API Test 1-28,text,false,,3827,0,15,15,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,0,0,11792
+1613909497997,17215,,Non HTTP response code: javax.net.ssl.SSLException,Non HTTP response message: Socket closed,Http URL/API Test 1-10,text,false,,4460,0,16,16,https://host4:8443/api/transactions/,0,0,17215
+1613909453070,62143,Get transaction data - PROD,Non HTTP response code: javax.net.ssl.SSLException,Non HTTP response message: Socket closed,Http URL/API Test 1-20,text,false,,2915,0,12,12,https://host4:8443/api/transactions/47448,8094,0,0
+1613909503007,12207,Keycloak call to get token - PROD,Non HTTP response code: javax.net.ssl.SSLException,Non HTTP response message: Socket closed,Http URL/API Test 1-29,text,false,,4360,0,13,13,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,0,0,12207
+1613909505674,9541,,Non HTTP response code: javax.net.ssl.SSLException,Non HTTP response message: Socket closed,Http URL/API Test 1-11,text,false,,4360,0,9,9,https://host4:8443/api/transactions/,0,0,9541
+1613909489937,25279,Add transaction data - PROD,Non HTTP response code: javax.net.ssl.SSLException,Non HTTP response message: Socket closed,Http URL/API Test 1-26,text,false,,3692,0,9,9,https://host4:8443/api/transactions/,0,0,4240
+1613909486917,28300,Add transaction data - PROD,Non HTTP response code: javax.net.ssl.SSLException,Non HTTP response message: Socket closed,Http URL/API Test 1-24,text,false,,3692,0,6,6,https://host4:8443/api/transactions/,0,0,8147
+1613909485006,30212,Keycloak call to get token - PROD,Non HTTP response code: javax.net.ssl.SSLException,Non HTTP response message: Socket closed,Http URL/API Test 1-27,text,false,,3827,0,4,4,https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token,0,0,3920
+1613909467566,47653,,Non HTTP response code: javax.net.ssl.SSLException,Non HTTP response message: Socket closed,Http URL/API Test 1-3,text,false,,2915,0,5,5,https://host4:8443/api/transactions/47546,19578,0,0
+1613909484975,30245,,Non HTTP response code: javax.net.ssl.SSLException,Non HTTP response message: Socket closed,Http URL/API Test 1-18,text,false,,3010,0,1,1,https://host4:8443/api/transactions/47548,8698,0,2434
