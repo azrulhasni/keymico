@@ -27,8 +27,8 @@ export HOST=host3
 export OTHER_HOSTS=host1,host2
 
 export CA_CRT=ca.crt
-export NODE_CRT=node3.crt
-export NODE_KEY=node3.key
+export NODE_CRT=node.host3.crt
+export NODE_KEY=node.host3.key
 
 
 export MINIO_DOWNLOAD_URL=https://dl.min.io/server/minio/release/linux-amd64/minio

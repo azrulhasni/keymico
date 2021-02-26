@@ -1,9 +1,12 @@
 #!/bin/bash
 
 #Files needed (placed in CURRENT_WORKING_DIR)
+
     #MINIO
     #=====
  #1) 8 files representing private keys and public certs
+ #1) Make sure go is installed
+ 
     #KEYCLOAK
  #2) JDBC jar file
  #3) standalone.proto.xml
@@ -24,48 +27,51 @@
     #=========
  #6)  Make sure Java 11 is installed
  
+ 
+    #ONCE FINISH
+    #==========
+#7) Copy 7 minio certs to host2,3 and 4(
+            #/home/minio/public.crt
+            #/home/minio/public2.crt
+            #/home/minio/private2.key
+            #/home/minio/public3.crt
+            #/home/minio/private3.key
+            #/home/minio/public4.crt
+            #/home/minio/private4.key )
+            
+#8) Copy 5 cockroach certs
+            #/home/cockroach/ca.crt
+            #/home/cockroach/certs2/node.host2.crt
+            #/home/cockroach/certs2/node.host2.crt
+            #/home/cockroach/certs3/node.host3.crt
+            #/home/cockroach/certs3/node.host3.crt
+ 
 export CURRENT_WORKING_DIR=/home/azrulhasni
 
 export COCKROACH_DOWNLOAD_URL=https://binaries.cockroachdb.com/cockroach-v20.2.5.linux-amd64.tgz
 export COCKROACH_UNZIPED_DIR=cockroach-v20.2.5.linux-amd64
 export HOST=host1
 export OTHER_HOSTS=host2,host3
-export HOST_EXT=ubuntu-s-4vcpu-8gb-lon1-01
-export IP_ADDRS=46.101.1.218
-export INT_IP_ADDRS=10.106.0.2
 
 export CA_CRT=ca.crt
 export NODE_ACCESS_LIST=10.106.0.2 46.101.1.218 host1 ubuntu-s-4vcpu-8gb-lon1-01 localhost 127.0.0.1 #space seperated hostname/ip address used to access host1
 
+export OTHER_NODE1=host2
 export OTHER_NODE1_CERT_FOLDER=/home/cockroach/certs2 
 export OTHER_NODE1_ACCESS_LIST=10.106.0.4 46.101.52.93 host2 ubuntu-s-4vcpu-8gb-lon1-02 localhost 127.0.0.1 #space seperated hostname/ip
 
+export OTHER_NODE2=host3
 export OTHER_NODE2_CERT_FOLDER=/home/cockroach/certs3
-export OTHER_NODE2_ACCESS_LIST=10.106.0.3 167.172.50.90 host3 ubuntu-s-4vcpu-8gb-lon1-03 localhost 127.0.0.1 #space seperated hostname/ip
-
-
+export OTHER_NODE2_ACCESS_LIST=10.106.0.3 167.172.50.90 host3 ubuntu-s-4vcpu-8gb-lon1-03 localhost 127.0.0.1 #space seperated 
 
 export MINIO_DOWNLOAD_URL=https://dl.min.io/server/minio/release/linux-amd64/minio
+export GO_CERT_GENERATOR_URL=https://golang.org/src/crypto/tls/generate_cert.go?m=text
 export MINIO_USERNAME=minio-admin
 export MINIO_PASSWORD=1qazZAQ!
 export MINIO_SERVERS=https://host1/mnt/data11\ https://host1/mnt/data12\ https://host2/mnt/data21\ https://host2/mnt/data22\ https://host3/mnt/data31\ https://host3/mnt/data32\ https://host4/mnt/data41\ https://host4/mnt/data42 #spaces must be excaped
 
 export DISK1=data11
 export DISK2=data12
-export MINIO_PUBLIC_CERT=public1.crt
-export MINIO_PRIVATE_KEY=private1.key
-
-export OTHER_MINIO_PUBLIC_CERT1=public3.crt
-export OTHER_MINIO_PRIVATE_KEY1=private3.key
-
-export OTHER_MINIO_PUBLIC_CERT2=public2.crt
-export OTHER_MINIO_PRIVATE_KEY2=private2.key
-
-export OTHER_MINIO_PUBLIC_CERT3=public4.crt
-export OTHER_MINIO_PRIVATE_KEY3=private4.key
-
-
-
 
 export KEYCLOAK_URL=https://github.com/keycloak/keycloak/releases/download/12.0.3/keycloak-12.0.3.tar.gz
 export KEYCLOAK_UNZIPED_DIR=keycloak-12.0.3
@@ -77,7 +83,7 @@ export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host1:26257\/keycloakdb' #!!!-th
 
 
 #=====================COCKROACH DB===============
-adduser --gecos "cockroach" --disabled-password --home "/home/cockroach" "cockroach"
+ useradd -m -p $(openssl passwd -crypt "1qazZAQ!") cockroach -s /bin/bash
 usermod -aG sudo cockroach
 
 
@@ -88,7 +94,6 @@ wget -c $COCKROACH_DOWNLOAD_URL -O - | tar -xzv --strip-components=1 -C /opt/$CO
 ln /opt/$COCKROACH_UNZIPED_DIR/cockroach /usr/local/bin/cockroach
 
 
-#--setup certs
 
 
 mkdir /home/cockroach/certs
@@ -130,13 +135,17 @@ cockroach cert create-node \
 $OTHER_NODE1_ACCESS_LIST \
 --certs-dir=$OTHER_NODE1_CERT_FOLDER \
 --ca-key=/home/cockroach/my-safe-directory/ca.key
-#Copy the content of $OTHER_NODE1_CERT_FOLDER to other servers
+mv $OTHER_NODE1_CERT_FOLDER/node.key $OTHER_NODE1_CERT_FOLDER/node.$OTHER_NODE1.key
+mv $OTHER_NODE1_CERT_FOLDER/node.crt $OTHER_NODE1_CERT_FOLDER/node.$OTHER_NODE1.crt
+#Copy the content of host2 to other servers
 
 cockroach cert create-node \
 $OTHER_NODE2_ACCESS_LIST \
 --certs-dir=$OTHER_NODE2_CERT_FOLDER \
 --ca-key=/home/cockroach/my-safe-directory/ca.key
-#Copy the content of $OTHER_NODE2_CERT_FOLDER to other servers
+mv $OTHER_NODE2_CERT_FOLDER/node.key $OTHER_NODE2_CERT_FOLDER/node.$OTHER_NODE2.key
+mv $OTHER_NODE2_CERT_FOLDER/node.crt $OTHER_NODE2_CERT_FOLDER/node.$OTHER_NODE2.crt
+#Copy the content of host3 to other servers
 
 
 #--setup systemd
@@ -180,20 +189,38 @@ cockroach cert create-client \
 
 
 #-- add minio user
-useradd -m -p $(openssl passwd -crypt "1qazZAQ!") minio -s /bin/bash
+ useradd -m -p $(openssl passwd -crypt "1qazZAQ!") minio -s /bin/bash
 usermod -aG sudo minio
 
 
 mkdir -p /home/minio/.minio/certs/CAs
 
 
-mv $CURRENT_WORKING_DIR/$MINIO_PUBLIC_CERT /home/minio/.minio/certs/public.crt
-mv $CURRENT_WORKING_DIR/$MINIO_PRIVATE_KEY /home/minio/.minio/certs/private.key 
+wget -c $GO_CERT_GENERATOR_URL -O - | tar -xzv --strip-components=1 -C /home/minio/
+go run generate_cert.go -ca --host "$HOST1"
+mv /home/minio/cert.pem /home/minio/.minio/certs/public.crt
+mv /home/minio/key.pem  /home/minio/.minio/certs/private.key
+cp /home/minio/.minio/certs/public.crt /home/minio/
+mv /home/minio/public.crt /home/minio/public1.crt 
 
+go run generate_cert.go -ca --host "$HOST2"
+mv /home/minio/cert.pem /home/minio/.minio/certs/public2.crt
+cp /home/minio/.minio/certs/public2.crt /home/minio/
+mv /home/minio/key.pem  /home/minio/private2.key 
+cp /home/minio/.minio/certs/private2.key  /home/minio/
 
-cp $CURRENT_WORKING_DIR/$OTHER_MINIO_PUBLIC_CERT1 /home/minio/.minio/certs/CAs
-cp $CURRENT_WORKING_DIR/$OTHER_MINIO_PUBLIC_CERT2 /home/minio/.minio/certs/CAs
-cp $CURRENT_WORKING_DIR/$OTHER_MINIO_PUBLIC_CERT3 /home/minio/.minio/certs/CAs
+go run generate_cert.go -ca --host "$HOST3"
+mv /home/minio/cert.pem /home/minio/.minio/certs/public3.crt
+cp /home/minio/.minio/certs/public3.crt /home/minio/
+mv /home/minio/key.pem  /home/minio/private3.key 
+cp /home/minio/.minio/certs/private3.key  /home/minio/
+
+go run generate_cert.go -ca --host "$HOST4"
+mv /home/minio/cert.pem /home/minio/.minio/certs/public4.crt
+cp /home/minio/.minio/certs/public4.crt /home/minio/
+mv /home/minio/key.pem  /home/minio/private4.key 
+cp /home/minio/.minio/certs/private4.key  /home/minio/
+
 
 #cd /home/minio
 

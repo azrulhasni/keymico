@@ -1,15 +1,15 @@
-Keymico: a super resilient multi-cloud stack — or how to spend your holidays in a lockdown
-==========================================================================================
+Keymico: a resilient multi-cloud stack — or how to spend your holidays in a lockdown
+====================================================================================
 
  
 
 It all started with a tussle between Huawei and a US startup company CNEX in
-2018 - and escalated to the the UK banning Huawei equipment until September 2021
-to the Trump administration adding another year (until May 2021) to the 2019
-Huawei ban
+2018 - and escalated to the US banning the usage of Huawei telecom technology in
+2019 to the the UK banning Huawei equipment until September 2021 to the Trump
+administration adding another year (until May 2021) to the 2019 Huawei ban
 [<https://www.cnet.com/news/huawei-ban-full-timeline-us-sanctions-china-trump-biden-5g-phone-sales/>].
 As a consequence, Huawei dropped to the 5th place in the global smartphone
-ranking, with the company chairman admitting that 2020 will be  “difficult" for
+ranking, with the company chairman admitting that 2020 will be “difficult" for
 Huawei "as the [US continues to ban devices and
 equipment](https://www.cnet.com/news/huawei-ban-full-timeline-us-sanctions-china-trump-biden-5g-phone-sales/) from
 the Chinese telecom giant and phone maker".
@@ -18,8 +18,8 @@ A little known fact about Huawei: they also operate as a cloud service provider
 (CSP). Now imagine that we are a user of their cloud service and these bans
 hitting Huawei's telco business are expanding as we speak - how much risk would
 we think this will cost your business? Even if Huawei's CSP business is not
-banned and left alone, wouldn't our customers be worried? Would they not move to
-a more reliable company - non dependent on Huawei?
+banned and left alone (it was not), wouldn't our customers be worried? Would
+they not move to a more reliable company - non dependent on Huawei?
 
  
 
@@ -43,7 +43,15 @@ cloud providers, are the most common deployment"
 fallback to another**. The challenge of multi-cloud architecture is obvious, we
 cannot leverage CSP specific cloud technology- as this would tie us to that
 specific CSP only. So we have to find a neutral way (open source, third party or
-standard) to go about multi-cloud - enter the Keymico stack
+standard) to go about multi-cloud - enter the Keymico stack.
+
+ 
+
+In this article, we will introduce the Keymico stack. We will run through a test
+environment where the stack is well… stacked up, and we will then test it for
+resiliency.
+
+ 
 
  
 
@@ -52,14 +60,14 @@ The Keymico stack
 
 ### Introduction
 
-Keymico (Keycloak-Minio-CockroahDB)  is a cloud neutral open source stack made
-of 3 software package that allows us to fulfil:
+Keymico (Keycloak-Minio-CockroahDB) is a cloud neutral open source stack made of
+3 software package that allows us to fulfil:
 
 **Relational database function:** CockroachDB
 
-**Object storage function: **Minio
+**Object storage function:** Minio
 
-**Identity broker/management function: **Keycloak
+**Identity broker/management function:** Keycloak
 
 ![](README.images/y5SSvZ.jpg)
 
@@ -71,7 +79,7 @@ deployment.
 
 (These 3 functionalities are what I usually use cloud for - definitely it does
 not cover every possible use case out there [no A.I. service for example]. Of
-course, I am thinking of extension  - e.g. Vault to help manage certificates and
+course, I am thinking of extension - e.g. Vault to help manage certificates and
 security, Kafka for resilient messaging , Consul for networking etc. - so maybe
 a Keymico+ stack in the future)
 
@@ -101,16 +109,14 @@ Archictecture
 -------------
 
 In this article we will use a simple banking restful application (called
-Keymicobank) that will be distributed to 3 AZs.
+Keymicobank) that will be distributed to 2 AZs / 3 VMs.
 
  
 
 ![](README.images/bK2Yox.jpg)
 
-
-
 -   In this architecture, we will setup Minio, Keycloak and CockroachDB in 3 VMs
-    in 3 different AZs. Minio will have a 4th VM in accordance to its
+    in 2 different AZs. Minio will have a 4th VM in accordance to its minimal
     requirement
 
 -   This is a test setup so we mix everything together in a single VM. In
@@ -120,13 +126,11 @@ Keymicobank) that will be distributed to 3 AZs.
 -   Both CockhroachDB and Minio are sync across AZs so that data loss is
     minimised
 
--   We also mounted two disks per setup for Minio to use. There is also a 4th VM
-    where we setup Minio (not shown here for brevity sake) as Minio requires a
-    minimal of 4 VMs and 2 disks each
+-   We also mounted two disks per setup for Minio to use.
 
 -   Keycloak is not setup as a cluster. Despite that, given that Keycloak’s
     database is highly available, Keycloak access is maintained even in the
-    incident of an AZ failure
+    incident of an AZ failure.
 
 -   All Keymico services are secured using self-signed TLS certificates. The
     application's (i.e. Keymico bank’s) services are secured at the Nginx load
@@ -144,8 +148,8 @@ Keymicobank) that will be distributed to 3 AZs.
 
  
 
-Getting our hands dirty
------------------------
+Getting our hands dirty - Environment setup
+-------------------------------------------
 
 ### What do we need
 
@@ -153,12 +157,12 @@ Getting our hands dirty
     VMs can be on a LAN, but, depending on your setup, you might not see the
     effect of multi-AZ failure test we are doing later)
 
-    a. 3 VMs for our application + Keymico stack
+    1.  3 VMs for our application + Keymico stack
 
-    b. 1 VM for NGINX
+    2.  1 VM for NGINX
 
-    c. Optionally, 1 VM for Jmeter to perform performance test (we can also run
-    Jmeter on our laptop if we want)
+    3.  Optionally, 1 VM for Jmeter to perform performance test (we can also run
+        Jmeter on our laptop if we want)
 
 -   Most of these commands should be the same across the VMs, so a tool like
     Ansible would definitely help. We will stick with plain bash for this
@@ -176,6 +180,8 @@ Getting our hands dirty
 -   We will mount 2 disks per node for Minio to use. We name the disks diskN1
     and diskN2 with N designating the host number (e.g. host2 will have disk21
     and disk22). The disks are mounted on /mnt/diskN1 and /mnt/diskN2
+
+-   We will also need SSH access to all hosts.
 
  
 
@@ -261,6 +267,10 @@ to take out `-p` and you will be prompt for a password):
 
 -   /home/cockroach: Cockroach user home directory
 
+-   /home/cockroach/certs: Cockroach DB certificates directory
+
+-   /home/cockroach/my-safe-directory: Cockroach DB CA key directory
+
 -   /home/minio: Minio user home directory
 
 -   /home/keycloak: Keycloak user home directory
@@ -287,7 +297,7 @@ to take out `-p` and you will be prompt for a password):
 
  
 
-###  Outgoing ports open for all hosts
+### Outgoing ports open for all hosts
 
 -   All ports
 
@@ -319,7 +329,86 @@ to take out `-p` and you will be prompt for a password):
 
  
 
-CockroachDB setup
+### Environment variables
+
+The list below is the environment variables mainly for Host1.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+export CURRENT_WORKING_DIR=/home/azrulhasni
+
+#-----------COCKROACHDB ENVIRONMENT VARIABLES---------------------
+#-----------------------------------------------------------------
+
+#Where to download CockroachDB
+export COCKROACH_DOWNLOAD_URL=https://binaries.cockroachdb.com/cockroach-v20.2.5.linux-amd64.tgz
+export COCKROACH_UNZIPED_DIR=cockroach-v20.2.5.linux-amd64
+
+#The current host we are setting up
+export HOST=host1 
+
+#Other hosts for CockroachDB
+export OTHER_HOSTS=host2,host3
+
+#Name of CA cert file we will create for CockroachDB
+export CA_CRT=ca.crt
+
+#List of other access end point of Host 1
+export NODE_ACCESS_LIST=10.106.0.2 46.101.1.218 host1 ubuntu-s-4vcpu-8gb-lon1-01 localhost 127.0.0.1 #space seperated hostname/ip address used to access host1
+
+#We will create CockroachDB certs for other nodes in Host 1 itself. 
+#So specifiy some info on those other nodes 
+export OTHER_NODE1=host2
+export OTHER_NODE1_CERT_FOLDER=/home/cockroach/certs2 
+export OTHER_NODE1_ACCESS_LIST=10.106.0.4 46.101.52.93 host2 ubuntu-s-4vcpu-8gb-lon1-02 localhost 127.0.0.1 #space seperated hostname/ip
+
+export OTHER_NODE2=host3
+export OTHER_NODE2_CERT_FOLDER=/home/cockroach/certs3
+export OTHER_NODE2_ACCESS_LIST=10.106.0.3 167.172.50.90 host3 ubuntu-s-4vcpu-8gb-lon1-03 localhost 127.0.0.1 #space seperated 
+
+
+#-----------MINIO ENVIRONMENT VARIABLES---------------------
+#-----------------------------------------------------------------
+
+# --- Where to download Minio
+export MINIO_DOWNLOAD_URL=https://dl.min.io/server/minio/release/linux-amd64/minio
+
+#We will use the GO script below to generate certs for Minio
+export GO_CERT_GENERATOR_URL=https://golang.org/src/crypto/tls/generate_cert.go?m=text
+
+#Minio default users
+export MINIO_USERNAME=minio-admin
+ export MINIO_PASSWORD=1qazZAQ!
+
+#Specify all minio server - we can use Minio expression language. 
+#Spaces must be escaped
+export MINIO_SERVERS=https://host1/mnt/data11\ https://host1/mnt/data12\ https://host2/mnt/data21\ https://host2/mnt/data22\ https://host3/mnt/data31\ https://host3/mnt/data32\ https://host4/mnt/data41\ https://host4/mnt/data42 
+
+#Disk name for this host
+export DISK1=data11
+export DISK2=data12
+
+
+#-----------KEYCLOAK ENVIRONMENT VARIABLES---------------------
+#-----------------------------------------------------------------
+
+#Where to download Keycloak
+export KEYCLOAK_URL=https://github.com/keycloak/keycloak/releases/download/12.0.3/keycloak-12.0.3.tar.gz
+export KEYCLOAK_UNZIPED_DIR=keycloak-12.0.3
+
+#Postgresql JDBC jar must be provided
+export POSTGRESQL_JDBC_JAR=postgresql-42.2.18.jar
+
+
+export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host1:26257\/keycloakdb' 
+#!!!-this url must be escaped - use https://dwaves.de/tools/escape/
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ 
+
+ 
+
+### CockroachDB setup
 
 -   The instructions below came from CockroachDB
     website[<https://www.cockroachlabs.com/docs/v20.2/install-cockroachdb-linux>].
@@ -330,28 +419,147 @@ CockroachDB setup
     where all data is replicated to all nodes. Unfortunately, the VM provider we
     are using doesn’t really have AZ in the region of our choosing - so we opt
     for something out of the region and yet still configure CockroachDB to
-    replicate everywhere - this ind of work (possibly because the regions we
-    choose (LONDON and FRANKFURT) isn’t all that far from each other, but not
+    replicate everywhere - this seems to work (possibly because the regions we
+    choose (LONDON and FRANKFURT) isn’t all that far from each other) but not
     recommended. In reality, if we are replicating data across region, we want
     to opt for a geo-based topology, e.g.
     [<https://www.cockroachlabs.com/docs/v20.2/topology-geo-partitioned-replicas.html>]
 
--    
+-   Download CockroachDB
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo mkdir /opt/$COCKROACH_UNZIPED_DIR
+wget -c $COCKROACH_DOWNLOAD_URL -O - | tar -xzv --strip-components=1 -C /opt/$COCKROACH_UNZIPED_DIR
+ln /opt/$COCKROACH_UNZIPED_DIR/cockroach /usr/local/bin/cockroach
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Create certificate for Host1
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo mkdir /home/cockroach/certs
+
+> sudo mkdir /home/cockroach/my-safe-directory
+
+> sudo cockroach cert create-ca \
+--certs-dir=/home/cockroach/certs \
+--ca-key=/home/cockroach/my-safe-directory/ca.key
+
+> sudo cockroach cert create-node \
+$NODE_ACCESS_LIST \
+--certs-dir=/home/cockroach/certs \
+--ca-key=/home/cockroach/my-safe-directory/ca.key
+
+> sudo chown -R cockroach:cockroach /home/cockroach/certs
+> sudo chown -R cockroach:cockroach /home/cockroach/my-safe-directory
+
+> sudo chmod 700 /home/cockroach/certs/node.crt
+> sudo chmod 700 /home/cockroach/certs/node.key
+> sudo chmod 700 /home/cockroach/certs/$CA_CRT
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   In Host1, we will create CockroachDB certificates for other nodes (Host2 and
+    Host3)
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo mkdir $OTHER_NODE1_CERT_FOLDER
+> sudo mkdir $OTHER_NODE2_CERT_FOLDER
+
+> sudo cockroach cert create-node \
+$OTHER_NODE1_ACCESS_LIST \
+--certs-dir=$OTHER_NODE1_CERT_FOLDER \
+--ca-key=/home/cockroach/my-safe-directory/ca.key
+
+> sudo mv $OTHER_NODE1_CERT_FOLDER/node.key $OTHER_NODE1_CERT_FOLDER/node.$OTHER_NODE1.key
+> sudo mv $OTHER_NODE1_CERT_FOLDER/node.crt $OTHER_NODE1_CERT_FOLDER/node.$OTHER_NODE1.crt
+
+> sudo cockroach cert create-node \
+$OTHER_NODE2_ACCESS_LIST \
+--certs-dir=$OTHER_NODE2_CERT_FOLDER \
+--ca-key=/home/cockroach/my-safe-directory/ca.key
+> sudo mv $OTHER_NODE2_CERT_FOLDER/node.key $OTHER_NODE2_CERT_FOLDER/node.$OTHER_NODE2.key
+> sudo mv $OTHER_NODE2_CERT_FOLDER/node.crt $OTHER_NODE2_CERT_FOLDER/node.$OTHER_NODE2.crt
+
+> sudo chown -R cockroach:cockroach $OTHER_NODE1_CERT_FOLDER
+> sudo chown -R cockroach:cockroach $OTHER_NODE2_CERT_FOLDER
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Next, copy the files below to /home/azrulhasni on Host2 and Host3
+
+    1) /home/cockroach/ca.crt
+
+2) /home/cockroach/certs2/node.host2.crt
+
+3) /home/cockroach/certs2/node.host2.crt
+
+4) /home/cockroach/certs3/node.host3.crt
+
+5) /home/cockroach/certs3/node.host3.crt
+
+-   We will then create a configuration file for systemd so that we can start
+    and stop CockroachDB easily
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ #--setup systemd
+> sudo cat << EOF | tee -a /etc/systemd/system/cockroach.service
+[Unit]
+Description=Cockroach Database cluster node
+Requires=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/cockroach
+ExecStartPre=/bin/sleep 30
+ExecStart=/usr/local/bin/cockroach start --certs-dir=/home/cockroach/certs --host=$HOST --http-host=$HOST --join=$HOST,$OTHER_HOSTS --cache=25% --max-sql-memory=25%
+ExecStop=/usr/local/bin/cockroach quit --certs-dir=/home/cockroach/certs --host=$HOST
+Restart=always
+RestartSec=10
+RestartPreventExitStatus=0
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=cockroach
+User=cockroach
+
+[Install]
+WantedBy=default.target
+EOF
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Complete systemd setup and start the CockroachDB service
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo systemctl daemon-reload
+> sudo systemctl enable cockroach
+> sudo systemctl start cockroach
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   To see the status of CockroachDB, run
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo systemctl status cockroach
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Since Host1 is the first host, we need to initialize CokcroachDB
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo cockroach init --certs-dir=/home/cockroach/certs --host=$HOST1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Then, create certificates for our banking user and keycloak user
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo cockroach cert create-client \
+    banking \
+    --certs-dir=/home/cockroach/certs \
+    --ca-key=/home/cockroach/my-safe-directory/ca.key
+> sudo cockroach cert create-client \
+    keycloak \
+    --certs-dir=/home/cockroach/certs \
+    --ca-key=/home/cockroach/my-safe-directory/ca.key
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Copy the certificates created in /home/cockroach/certs to /home/azrulhasni
+    Host2 and Host3
 
  
 
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
-
-
-CockroachDB setup
+asa
