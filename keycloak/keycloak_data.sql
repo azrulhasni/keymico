@@ -1,4 +1,21 @@
+--
+-- PostgreSQL database dump
+--
 
+-- Dumped from database version 10.3
+-- Dumped by pg_dump version 10.3
+
+-- Started on 2021-02-26 23:36:27 +08
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+SET row_security = off;
 
 --
 -- TOC entry 4029 (class 0 OID 76800)
@@ -367,6 +384,8 @@ INSERT INTO public.component VALUES ('24b12bff-6a4c-46a1-8e8d-af8379bd3e9c', 'Al
 INSERT INTO public.component VALUES ('7b8ab5bf-05bc-46b7-b402-0f93b79c31c9', 'Allowed Client Scopes', 'master', 'allowed-client-templates', 'org.keycloak.services.clientregistration.policy.ClientRegistrationPolicy', 'master', 'anonymous');
 INSERT INTO public.component VALUES ('3909c702-071f-455b-9bdf-decb20bf51f7', 'Allowed Protocol Mapper Types', 'master', 'allowed-protocol-mappers', 'org.keycloak.services.clientregistration.policy.ClientRegistrationPolicy', 'master', 'authenticated');
 INSERT INTO public.component VALUES ('0ed2ed01-3559-4584-ae28-9b7db6b7907a', 'Allowed Client Scopes', 'master', 'allowed-client-templates', 'org.keycloak.services.clientregistration.policy.ClientRegistrationPolicy', 'master', 'authenticated');
+INSERT INTO public.component VALUES ('9bc494fe-f9f5-49cb-b3d1-4e7736251374', 'fallback-HS256', 'master', 'hmac-generated', 'org.keycloak.keys.KeyProvider', 'master', NULL);
+INSERT INTO public.component VALUES ('b9b7bebf-2db3-4a12-8b81-394be72165b5', 'fallback-RS256', 'master', 'rsa-generated', 'org.keycloak.keys.KeyProvider', 'master', NULL);
 
 
 --
@@ -396,6 +415,14 @@ INSERT INTO public.component_config VALUES ('d5937c1f-e880-4b20-ac7f-ec4457885e5
 INSERT INTO public.component_config VALUES ('f447b939-07dd-4e78-83ab-698dbfa1821a', '3909c702-071f-455b-9bdf-decb20bf51f7', 'allowed-protocol-mapper-types', 'oidc-usermodel-property-mapper');
 INSERT INTO public.component_config VALUES ('473e8b29-c36b-481c-9857-c903e90e861e', 'f77e98e9-1ed4-4433-9245-b474d57fd899', 'client-uris-must-match', 'true');
 INSERT INTO public.component_config VALUES ('f838d569-44a3-4a50-b67d-0c5bab9ef1aa', 'f77e98e9-1ed4-4433-9245-b474d57fd899', 'host-sending-registration-request-must-match', 'true');
+INSERT INTO public.component_config VALUES ('fab7f187-06c0-4fea-a42d-b3a6b622f743', '9bc494fe-f9f5-49cb-b3d1-4e7736251374', 'secret', 'J5YGH_hnMOP9sXWQ057t2yVRHcacOQrNBANr-6QqPHZF4kLHnKQ19J3SWIly7XtnP5Qb4Gi_1wvpb7uUhrKObA');
+INSERT INTO public.component_config VALUES ('bc3a9350-de1d-400b-abd1-03f87e2cf23e', '9bc494fe-f9f5-49cb-b3d1-4e7736251374', 'kid', 'b62586de-9127-48c3-adf1-24339d2a1ebe');
+INSERT INTO public.component_config VALUES ('99a87135-10b2-463a-afb8-bd0b1a9d74b7', '9bc494fe-f9f5-49cb-b3d1-4e7736251374', 'algorithm', 'HS256');
+INSERT INTO public.component_config VALUES ('2a668e31-c1b1-47b1-bdde-951845af82cc', '9bc494fe-f9f5-49cb-b3d1-4e7736251374', 'priority', '-100');
+INSERT INTO public.component_config VALUES ('4ce54536-c886-4333-aca7-e9c62a3fa4a6', 'b9b7bebf-2db3-4a12-8b81-394be72165b5', 'algorithm', 'RS256');
+INSERT INTO public.component_config VALUES ('cb0c94c0-d90c-4c79-874a-1c4944fc6761', 'b9b7bebf-2db3-4a12-8b81-394be72165b5', 'priority', '-100');
+INSERT INTO public.component_config VALUES ('721adc1b-a9cb-45aa-b6ef-d2d17283e8ff', 'b9b7bebf-2db3-4a12-8b81-394be72165b5', 'privateKey', 'MIIEpAIBAAKCAQEAmsob70zMYI63l87V22J6zs70ArJI/svbrKnzQQtLM3lOihaetiNjt9/y1Gl7LoQzwbu59CsG/uZesRXemeYFQsmYbVOYiJ14YVxb2EFIWhGC+X27L1vvweytk4sVjnwfyf/PW5nqNtQ1nln9ql8vnBqnbwm3eKA9GfUL3GFVWv75o6nf9Ftc8xqD4NXu4jqAERQn+WVjfpazs0OPr+5+VQSJLnaE1dn/rO/WOXcwklBDdlzRyWKQl9RSpu5i5MlyBVpYbaKaF9F6DpOi/ER5FuHsu18gOBOg6zFUZy8nveJ85Ouh9wWKE2J/+eHZHUeYvwDevlpo1Oh054HHHQwxSQIDAQABAoIBAQCRxtBCMWi1cxNSxDfCMmAITv2dYHzAggsz9KakVlePdapTAHSegnvSWvYdt+2L5HO9++doHfGrtBfv3PHUrL29pZCJPdaEqxEJWGsjInBaau2XvCLCumn1j8n1D2LQ2vMxUVrfIPhkhLyukoAEqTp0YOHZACSrVPXWcWKnPX+eftPLqZxNgSP1mO3VczKEeoYHnvg7LYJnUqE1yF92iw0WKifCn9CxsK8KejSAagVL8MM6y7IsWapGz3JKU++/PjnURZM9glcktfvbDmZB6CMDTldg1WY5A1nrKnA6cofcjS+v02njMHwUrUxqzDXlKv5c2erSoklyMZ45fiDltP9RAoGBAOBIM0u/yT0XlvFA0Fh58d0gFfU/HtWg3W7hxCcogr+mlSsTH0zrnKmRb0LQRNuOiy9v4k4/rBVRWRzH6aOPyb9Jj5+Lt9HE2Ah3hRiVdWYHHopB7feisTZ+skLpDNS3OEll/55p/DBHqz/MU1l7pRpmLomXZzEIsOhpMUlB4+rlAoGBALCuCKtUCqvSlZ0K4xl9BaUaCu+0UyG4QeZpMXFq+D3HQxubkYmxazHEz2pTTpqfHQAaAqhvh3GuAkrONxzQ8+5M/AckEPrnsqTyWcdPK2X8EYhhJD9fmD+7y3FARa2R5hBaMIOneO9k7AAuyCDAUeKPYzaJJGapGjGd7kwkePKVAoGASYiCgPBlW0lTrM+SP5/jo5s0d871Hhd64jLVK/2FOK62M4Q2e/K3z4SmVOKR4OZQTgJB0WPg2LBuJhiJSp4HCFdm5mlZoEYIimYdVh0Se5wT8EKDcfB+Z56MdZGRKmDT7ISrlVWsYGvvAqDMJwd57zjXQzdHlvUBg4GRrjITNt0CgYANG3wtKbj48lCDLBGZDHtkuj/hdKFOORs6esdeQK9V9fh2jd4INw9ay90PaErGkdNW9JcJ4+xKdLxazF2uV5ohLbjs1rIjyxinwAsFDEyN7ltmoL5NrUvgPpBjQH9q1w4YXHiI692+9N/FS7MxKtNoWXbkztvSee0ljS/mmjYW2QKBgQCPy2xqNNaWhlnRPgszA+Tkr+tmcHqGQx/sZnL5WiAoKBFmnuu2VqbdAh/yY7qp/QwALUXeL59Nlt1JkjsTJmwQL5Xjccn7cMirg6fRY/KD9f2CjBkwk6ZY1SVGrukcSi/nN0puvm6hxwAkC0DWadgK1N5PkfsTU4gSg30Ezh0s5g==');
+INSERT INTO public.component_config VALUES ('efe6c6f4-cc83-4c37-9690-e176b4a32eec', 'b9b7bebf-2db3-4a12-8b81-394be72165b5', 'certificate', 'MIICmzCCAYMCBgF33vUTLDANBgkqhkiG9w0BAQsFADARMQ8wDQYDVQQDDAZtYXN0ZXIwHhcNMjEwMjI2MTUyNzE5WhcNMzEwMjI2MTUyODU5WjARMQ8wDQYDVQQDDAZtYXN0ZXIwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCayhvvTMxgjreXztXbYnrOzvQCskj+y9usqfNBC0szeU6KFp62I2O33/LUaXsuhDPBu7n0Kwb+5l6xFd6Z5gVCyZhtU5iInXhhXFvYQUhaEYL5fbsvW+/B7K2TixWOfB/J/89bmeo21DWeWf2qXy+cGqdvCbd4oD0Z9QvcYVVa/vmjqd/0W1zzGoPg1e7iOoARFCf5ZWN+lrOzQ4+v7n5VBIkudoTV2f+s79Y5dzCSUEN2XNHJYpCX1FKm7mLkyXIFWlhtopoX0XoOk6L8RHkW4ey7XyA4E6DrMVRnLye94nzk66H3BYoTYn/54dkdR5i/AN6+WmjU6HTngccdDDFJAgMBAAEwDQYJKoZIhvcNAQELBQADggEBAClC0xoqP/+7o/JbxP80nqjmyY67PoWhoJZqlnQNILkavTYHKIcH8QqU4uyLopBk5k33IasgvLWfbPUZjIW505NRIuun/sDx3TtUNP/Z1Q/IGMwBvA+0c6TVOdn1DIyhTJtLu7ZdVuKmoW+Q0bMPhH9jc9IewIeM7ZYHwJeigKM8YSmPQF2xC4YzmrvRaudAQDm4GY7jitPX17ZyRqtHBoCDlyAGyIRS0tvUF/sXBRcIzvdjNiOovy1k5Bv2lHTZPv4j+Tch+ziDB9qYBv70T8ybnrqdWlzhGCFISuMrKQ491HMgQ7fQHiKXBbcVd7CRo5662nG7bZRHsveFeNyGmDE=');
 
 
 --
@@ -436,7 +463,7 @@ INSERT INTO public.composite_role VALUES ('da22adfe-61c9-48e8-a18a-4f10d34283a2'
 -- Data for Name: credential; Type: TABLE DATA; Schema: public; Owner: keycloak
 --
 
-INSERT INTO public.credential VALUES ('704de6d9-25a7-4ceb-9e9e-72ca53bc785f', NULL, 'password', '079d38b4-a0fc-426c-ab67-1dce6d83f1d3', 1613156284418, NULL, '{"value":"thh3NZC8yVKiF1AnN1wqaYy9Qxn+2lCcbil1NAAoCKiLRXD1FOH3Jhb5Lu/l6qJvQ/d9aVtQLrh2WU8wkyqgkw==","salt":"+akE1J09cn57hKcxnQKFbw==","additionalParameters":{}}', '{"hashIterations":27500,"algorithm":"pbkdf2-sha256","additionalParameters":{}}', 10);
+INSERT INTO public.credential VALUES ('704de6d9-25a7-4ceb-9e9e-72ca53bc785f', NULL, 'password', '079d38b4-a0fc-426c-ab67-1dce6d83f1d3', 1614353383521, NULL, '{"value":"LM5cZdIpWUV1aEmWBxLrJCaNBEyzLuEhON0/LHMY1F4IxI1ikP1lMEghY/B0Wfhgww5Zu3fPsbV32YnJ+MQy7w==","salt":"sHe3+XWvlUBLeTkk3HcdoA==","additionalParameters":{}}', '{"hashIterations":27500,"algorithm":"pbkdf2-sha256","additionalParameters":{}}', 10);
 
 
 --
@@ -1321,7 +1348,7 @@ INSERT INTO public.user_role_mapping VALUES ('da22adfe-61c9-48e8-a18a-4f10d34283
 INSERT INTO public.web_origins VALUES ('e84d5ad3-7309-45fa-be43-b548ba098044', '+');
 
 
--- Completed on 2021-02-13 03:08:58 +08
+-- Completed on 2021-02-26 23:36:28 +08
 
 --
 -- PostgreSQL database dump complete

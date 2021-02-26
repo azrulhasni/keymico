@@ -401,7 +401,6 @@ export POSTGRESQL_JDBC_JAR=postgresql-42.2.18.jar
 
 export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host1:26257\/keycloakdb' 
 #!!!-this url must be escaped - use https://dwaves.de/tools/escape/
-
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
  
@@ -430,7 +429,8 @@ export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host1:26257\/keycloakdb'
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 > sudo mkdir /opt/$COCKROACH_UNZIPED_DIR
 wget -c $COCKROACH_DOWNLOAD_URL -O - | tar -xzv --strip-components=1 -C /opt/$COCKROACH_UNZIPED_DIR
-ln /opt/$COCKROACH_UNZIPED_DIR/cockroach /usr/local/bin/cockroach
+
+> sudo ln /opt/$COCKROACH_UNZIPED_DIR/cockroach /usr/local/bin/cockroach
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -   Create certificate for Host1
@@ -485,15 +485,15 @@ $OTHER_NODE2_ACCESS_LIST \
 
 -   Next, copy the files below to /home/azrulhasni on Host2 and Host3
 
-    1) /home/cockroach/ca.crt
+    1.  /home/cockroach/ca.crt
 
-2) /home/cockroach/certs2/node.host2.crt
+1.  /home/cockroach/certs2/node.host2.crt
 
-3) /home/cockroach/certs2/node.host2.crt
+2.  /home/cockroach/certs2/node.host2.crt
 
-4) /home/cockroach/certs3/node.host3.crt
+3.  /home/cockroach/certs3/node.host3.crt
 
-5) /home/cockroach/certs3/node.host3.crt
+4.  /home/cockroach/certs3/node.host3.crt
 
 -   We will then create a configuration file for systemd so that we can start
     and stop CockroachDB easily
@@ -558,8 +558,61 @@ EOF
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -   Copy the certificates created in /home/cockroach/certs to /home/azrulhasni
-    Host2 and Host3
+    of Host2 and Host3
 
  
 
-asa
+### Creating database
+
+-   First, let us log in to the database and create the users
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> cockroach sql --certs-dir=certs --host=localhost:26257
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   We will get the CockroachDB client. Use it to create users and databases
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+root@:26257/defaultdb> CREATE USER banking WITH LOGIN PASSWORD 'somepassword'
+
+root@:26257/defaultdb> CREATE USER keycloak WITH LOGIN PASSWORD 'somepassword'
+
+root@:26257/defaultdb> CREATE DATABASE banking
+
+root@:26257/defaultdb> CREATE DATABASE keycloakdb
+
+root@:26257/defaultdb> alter database banking owner to banking
+
+root@:26257/defaultdb> alter database keycloakdb owner to keycloak
+
+root@:26257/defaultdb> exit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+Keycloak
+
+Add certificate
+
+ 
+
+\> export
+CACERTS_LOC=/Library/Java/JavaVirtualMachines/jdk-14.0.2.jdk/Contents/Home/lib/cacerts
+
+\> sudo openssl s_client -connect localhost:26258 \</dev/null     \| sudo sed
+-ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' \> cockroach.localhost.cer
+
+\> sudo keytool -noprompt -import -file "/tmp/cockroach.localhost.cer" -keystore
+"\$CACERTS_LOC" -alias "cockroachdb" -storepass  changeit
