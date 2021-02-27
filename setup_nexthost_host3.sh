@@ -55,6 +55,7 @@ export OTHER_MINIO_PRIVATE_KEY3=private4.key
 
 export KEYCLOAK_URL=https://github.com/keycloak/keycloak/releases/download/12.0.3/keycloak-12.0.3.tar.gz
 export KEYCLOAK_UNZIPED_DIR=keycloak-12.0.3
+export POSTGRESQL_JDBC_DOWNLOAD_URL=https://jdbc.postgresql.org/download/postgresql-42.2.19.jar
 export POSTGRESQL_JDBC_JAR=postgresql-42.2.18.jar
 export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host3:26257\/keycloakdb'
 
@@ -221,6 +222,9 @@ mkdir /opt/$KEYCLOAK_UNZIPED_DIR
 wget -c $KEYCLOAK_URL -O - | tar -xzv --strip-components=1 -C /opt/$KEYCLOAK_UNZIPED_DIR
 
 chown -R keycloak:keycloak /opt/$KEYCLOAK_UNZIPED_DIR
+
+#download JDBC jar
+wget -c $POSTGRESQL_JDBC_DOWNLOAD_URL -O - | tar -xzv --strip-components=1 -C $CURRENT_WORKING_DIR
 
 #--copy proto standalone xml to standalone xml
 cp $CURRENT_WORKING_DIR/standalone.proto.xml /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration
