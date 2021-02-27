@@ -1,0 +1,65 @@
+<div class="row justify-content-center">
+    <div class="col-8">
+        <div *ngIf="transaction">
+            <h2><span>Transaction</span> {{ transaction.id }}</h2>
+
+            <hr>
+
+            <jhi-alert-error></jhi-alert-error>
+
+            <dl class="row-md jh-entity-details">
+                <dt><span>Transaction Id</span></dt>
+                <dd>
+                    <span>{{ transaction.transactionId }}</span>
+                </dd>
+                <dt><span>File</span></dt>
+                <dd>
+                    <span>{{ transaction.file }}</span>
+                </dd>
+                <dt><span>File Binaries</span></dt>
+                <dd>
+                    <div *ngIf="transaction.fileBinaries">
+                        <a (click)="openFile(transaction.fileBinariesContentType, transaction.fileBinaries)">open</a>
+                        {{ transaction.fileBinariesContentType }}, {{ byteSize(transaction.fileBinaries) }}
+                    </div>
+                </dd>
+                <dt><span>Transaction Type</span></dt>
+                <dd>
+                    <span>{{ transaction.transactionType }}</span>
+                </dd>
+                <dt><span>Amount</span></dt>
+                <dd>
+                    <span>{{ transaction.amount }}</span>
+                </dd>
+                <dt><span>Time</span></dt>
+                <dd>
+                    <span>{{ transaction.time }}</span>
+                </dd>
+                <dt><span>Currency</span></dt>
+                <dd>
+                    <span>{{ transaction.currency }}</span>
+                </dd>
+                <dt><span>Source Account</span></dt>
+                <dd>
+                    <span>{{ transaction.sourceAccount }}</span>
+                </dd>
+                <dt><span>Target Account</span></dt>
+                <dd>
+                    <span>{{ transaction.targetAccount }}</span>
+                </dd>
+            </dl>
+
+            <button type="submit"
+                    (click)="previousState()"
+                    class="btn btn-info">
+                <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span>Back</span>
+            </button>
+
+            <button type="button"
+                    [routerLink]="['/transaction-banking', transaction.id, 'edit']"
+                    class="btn btn-primary">
+                <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span>Edit</span>
+            </button>
+        </div>
+    </div>
+</div>

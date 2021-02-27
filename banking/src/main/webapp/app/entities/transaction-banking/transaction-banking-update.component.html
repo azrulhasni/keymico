@@ -1,0 +1,97 @@
+<div class="row justify-content-center">
+    <div class="col-8">
+        <form name="editForm" role="form" novalidate (ngSubmit)="save()" [formGroup]="editForm">
+            <h2 id="jhi-transaction-banking-heading">Create or edit a Transaction</h2>
+
+            <div>
+                <jhi-alert-error></jhi-alert-error>
+
+                <div class="form-group" [hidden]="!editForm.get('id')!.value">
+                    <label for="id">ID</label>
+                    <input type="text" class="form-control" id="id" name="id" formControlName="id" readonly />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-control-label" for="field_transactionId">Transaction Id</label>
+                    <input type="text" class="form-control" name="transactionId" id="field_transactionId"
+                           formControlName="transactionId"/>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-control-label" for="field_file">File</label>
+                    <input type="text" class="form-control" name="file" id="field_file"
+                           formControlName="file"/>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-control-label" for="field_fileBinaries">File Binaries</label>
+                    <div>
+                        <div *ngIf="editForm.get('fileBinaries')!.value" class="form-text text-danger clearfix">
+                            <a class="pull-left" (click)="openFile(editForm.get('fileBinariesContentType')!.value, editForm.get('fileBinaries')!.value)">open</a><br>
+                            <span class="pull-left">{{ editForm.get('fileBinariesContentType')!.value }}, {{ byteSize(editForm.get('fileBinaries')!.value) }}</span>
+                            <button type="button" (click)="editForm.patchValue({fileBinaries: null});editForm.patchValue({fileBinariesContentType: null});"
+                                    class="btn btn-secondary btn-xs pull-right">
+                                <fa-icon icon="times"></fa-icon>
+                            </button>
+                        </div>
+                        <input type="file" id="file_fileBinaries" (change)="setFileData($event, 'fileBinaries', false)"/>
+                    </div>
+                    <input type="hidden" class="form-control" name="fileBinaries" id="field_fileBinaries"
+                           formControlName="fileBinaries"/>
+                    <input type="hidden" class="form-control" name="fileBinariesContentType" id="field_fileBinariesContentType"
+                           formControlName="fileBinariesContentType" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-control-label" for="field_transactionType">Transaction Type</label>
+                    <input type="text" class="form-control" name="transactionType" id="field_transactionType"
+                           formControlName="transactionType"/>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-control-label" for="field_amount">Amount</label>
+                    <input type="number" class="form-control" name="amount" id="field_amount"
+                           formControlName="amount"/>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-control-label" for="field_time">Time</label>
+                    <div class="d-flex">
+                        <input id="field_time" type="datetime-local" class="form-control" name="time" formControlName="time" placeholder="YYYY-MM-DD HH:mm"/>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-control-label" for="field_currency">Currency</label>
+                    <select class="form-control" name="currency" formControlName="currency" id="field_currency">
+                        <option value="USD">USD</option>
+                        <option value="MYR">MYR</option>
+                        <option value="SGD">SGD</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-control-label" for="field_sourceAccount">Source Account</label>
+                    <input type="text" class="form-control" name="sourceAccount" id="field_sourceAccount"
+                           formControlName="sourceAccount"/>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-control-label" for="field_targetAccount">Target Account</label>
+                    <input type="text" class="form-control" name="targetAccount" id="field_targetAccount"
+                           formControlName="targetAccount"/>
+                </div>
+            </div>
+
+            <div>
+                <button type="button" id="cancel-save" class="btn btn-secondary" (click)="previousState()">
+                    <fa-icon icon="ban"></fa-icon>&nbsp;<span>Cancel</span>
+                </button>
+
+                <button type="submit" id="save-entity" [disabled]="editForm.invalid || isSaving" class="btn btn-primary">
+                    <fa-icon icon="save"></fa-icon>&nbsp;<span>Save</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

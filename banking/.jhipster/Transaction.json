@@ -1,0 +1,56 @@
+{
+  "name": "Transaction",
+  "fields": [
+    {
+      "fieldName": "transactionId",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "file",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "fileBinaries",
+      "fieldType": "byte[]",
+      "fieldTypeBlobContent": "any"
+    },
+    {
+      "fieldName": "transactionType",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "amount",
+      "fieldType": "BigDecimal"
+    },
+    {
+      "fieldName": "time",
+      "fieldType": "ZonedDateTime"
+    },
+    {
+      "fieldName": "currency",
+      "fieldType": "Currency",
+      "fieldValues": "USD,MYR,SGD"
+    },
+    {
+      "fieldName": "sourceAccount",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "targetAccount",
+      "fieldType": "String"
+    }
+  ],
+  "relationships": [],
+  "changelogDate": "20210219054134",
+  "entityTableName": "transaction",
+  "dto": "no",
+  "pagination": "infinite-scroll",
+  "service": "serviceClass",
+  "jpaMetamodelFiltering": false,
+  "fluentMethods": true,
+  "readOnly": false,
+  "embedded": false,
+  "clientRootFolder": "",
+  "applications": "*",
+  "angularJSSuffix": "banking"
+}
