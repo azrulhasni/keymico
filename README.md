@@ -298,9 +298,9 @@ to take out `-p` and you will be prompt for a password):
 
 -   /opt : This is where we put Minio’s binary files
 
--   /mnt/diskN1: Minio mounted disk1. N designates the host number
+-   /mnt/disk41: Minio mounted disk1.
 
--   /mnt/diskN2: Minio mounted disk2. N designates the host number
+-   /mnt/disk42: Minio mounted disk2.
 
 -   /home/azrulhasni: Application binary and main user home directory
 
@@ -375,7 +375,7 @@ to take out `-p` and you will be prompt for a password):
 
 ### Host mapping for Host4
 
--   Host4  has no Keycloak, the configuration is just a little bit different
+-   Host4 has no Keycloak, the configuration is just a little bit different
 
 -   Open up the /etc/hosts file
 
@@ -689,9 +689,7 @@ root@:26257/defaultdb> alter database keycloakdb owner to keycloak
 root@:26257/defaultdb> exit
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
-
-### Installing JDK 
+### Installing JDK
 
 Let us install the JDK
 
@@ -782,23 +780,21 @@ between the client and application+Keycloak. The concept presented below still
 holds either with direct connection or connection through load-balancer. The
 configuration to /etc/hosts on the client side will still need to be done
 
-
-
 ![](README.images/nNTi6G.jpg)
 
-1) When our application starts, it will call Keycloak to make sure that the
-issuer-url in its configuration file is correct and valid. If the issuer-url is
-not correct, the application will not start properly
+1.  When our application starts, it will call Keycloak to make sure that the
+    issuer-url in its configuration file is correct and valid. If the issuer-url
+    is not correct, the application will not start properly
 
-2) A client calls Keycloak with a username and password.
+2.  A client calls Keycloak with a username and password.
 
-3) Keycloak will return back an access token. **The access token contains
-Keycloak URL**
+3.  Keycloak will return back an access token. **The access token contains
+    Keycloak URL**
 
-4) The client then calls our application and provide the access token as a proof
-that it is an authenticated client. Our application will take the Keycloak URL
-from the access token and compare it with its own validated issuer-url. If this
-is equal, then the token is correct.
+4.  The client then calls our application and provide the access token as a
+    proof that it is an authenticated client. Our application will take the
+    Keycloak URL from the access token and compare it with its own validated
+    issuer-url. If this is equal, then the token is correct.
 
  
 
@@ -1033,7 +1029,7 @@ If all goes well, Keycloak will be started and we can use it right away.
 
  
 
--   Copy the 7 files below  from /home/minio to Host2, Host3 and Host4. Put the
+-   Copy the 7 files below from /home/minio to Host2, Host3 and Host4. Put the
     files under /home/azrulhasni in respective hosts
 
 1.  public1.crt
@@ -1070,9 +1066,9 @@ If all goes well, Keycloak will be started and we can use it right away.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #--For disks----
-> sudo chown -R minio /mnt/$DISK1
+> sudo chown -R minio:minio /mnt/$DISK1
 > sudo chmod u+rxw /mnt/$DISK1
-> sudo chown -R minio /mnt/$DISK2
+> sudo chown -R minio:minio /mnt/$DISK2
 > sudo chmod u+rxw /mnt/$DISK2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1148,8 +1144,8 @@ EOF
 
  
 
-Getting our hands dirty - Host2 and Host3 setup
------------------------------------------------
+Getting our hands dirty - Host2, Host3 and Host4 setup
+------------------------------------------------------
 
  
 
@@ -1185,6 +1181,26 @@ Host3. Make sure they are transferred to /home/azrulhasni of Host2 and Host3
 13. public4.crt
 
 14. standalone.proto.xml
+
+ 
+
+For Host4, make sure we have the files below in /home/azrulhasni
+
+1.  private2.key
+
+2.  private3.key
+
+3.  private4.key
+
+4.  public1.crt
+
+5.  public2.crt
+
+6.  public3.crt
+
+7.  public4.crt
+
+ 
 
  
 
@@ -1267,11 +1283,336 @@ export OTHER_MINIO_PUBLIC_CERT3=public4.crt
 export OTHER_MINIO_PRIVATE_KEY3=private4.key
 
 
-
-
 export KEYCLOAK_URL=https://github.com/keycloak/keycloak/releases/download/12.0.3/keycloak-12.0.3.tar.gz
 export KEYCLOAK_UNZIPED_DIR=keycloak-12.0.3
 export POSTGRESQL_JDBC_DOWNLOAD_URL=https://jdbc.postgresql.org/download/postgresql-42.2.19.jar
 export POSTGRESQL_JDBC_JAR=postgresql-42.2.18.jar
 export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host3:26257\/keycloakdb'
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ 
+
+ 
+
+### Environment variables for Host4
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+export CURRENT_WORKING_DIR=/home/azrulhasni
+
+export HOST=host4
+
+
+export MINIO_DOWNLOAD_URL=https://dl.min.io/server/minio/release/linux-amd64/minio
+export MINIO_USERNAME=minio-admin
+export MINIO_PASSWORD=1qazZAQ!
+export MINIO_SERVERS=https://host1/mnt/data11\ https://host1/mnt/data12\ https://host2/mnt/data21\ https://host2/mnt/data22\ https://host3/mnt/data31\ https://host3/mnt/data32\ https://host4/mnt/data41\ https://host4/mnt/data42 #spaces must be excaped
+
+export DISK1=data41
+export DISK2=data42
+export MINIO_PUBLIC_CERT=public4.crt
+export MINIO_PRIVATE_KEY=private4.key
+
+export OTHER_MINIO_PUBLIC_CERT1=public1.crt
+export OTHER_MINIO_PRIVATE_KEY1=private1.key
+
+export OTHER_MINIO_PUBLIC_CERT2=public2.crt
+export OTHER_MINIO_PRIVATE_KEY2=private2.key
+
+export OTHER_MINIO_PUBLIC_CERT3=public3.crt
+export OTHER_MINIO_PRIVATE_KEY3=private3.key
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ 
+
+### Setup CockroachDB and Keycloak for each host: Host2 and Host3
+
+-   Let us setup CockroachDB
+
+-   Download CockroachDB
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#--download
+> sudo mkdir /opt/$COCKROACH_UNZIPED_DIR
+> sudo wget -c $COCKROACH_DOWNLOAD_URL -O - | tar -xzv --strip-components=1 -C /opt/$COCKROACH_UNZIPED_DIR
+> sudo ln /opt/$COCKROACH_UNZIPED_DIR/cockroach /usr/local/bin/cockroach
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Copy certificates
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo mkdir /home/cockroach/certs
+> sudo chown -R cockroach:cockroach /home/cockroach/certs
+
+> sudo cp $CURRENT_WORKING_DIR/$NODE_CRT /home/cockroach/certs
+> sudo mv /home/cockroach/certs/$NODE_CRT /home/cockroach/certs/node.crt
+
+> sudo cp $CURRENT_WORKING_DIR/$NODE_KEY /home/cockroach/certs
+> sudo mv /home/cockroach/certs/$NODE_KEY /home/cockroach/certs/node.key
+
+> sudo cp $CURRENT_WORKING_DIR/$CA_CRT /home/cockroach/certs/
+
+> sudo chmod 700 /home/cockroach/certs/node.crt
+> sudo chmod 700 /home/cockroach/certs/node.key
+> sudo chmod 700 /home/cockroach/certs/$CA_CRT
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Setup systemd
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#--setup systemd
+> sudo cat << EOF | tee -a /etc/systemd/system/cockroach.service
+[Unit]
+Description=Cockroach Database cluster node
+Requires=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/cockroach
+ExecStartPre=/bin/sleep 30
+ExecStart=/usr/local/bin/cockroach start --certs-dir=/home/cockroach/certs --host=$HOST --http-host=$HOST --join=$HOST,$OTHER_HOSTS --cache=25% --max-sql-memory=25%
+ExecStop=/usr/local/bin/cockroach quit --certs-dir=/home/cockroach/certs --host=$HOST
+Restart=always
+RestartSec=10
+RestartPreventExitStatus=0
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=cockroach
+User=cockroach
+
+[Install]
+WantedBy=default.target
+EOF
+
+> sudo systemctl daemon-reload
+> sudo systemctl enable cockroach
+> sudo systemctl start cockroach
+> sudo systemctl status cockroach
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   This should start CockroachDB
+
+-   Next we will setup Keycloak
+
+-   Download Keycloak and install
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo mkdir /opt/$KEYCLOAK_UNZIPED_DIR
+> sudo wget -c $KEYCLOAK_URL -O - | tar -xzv --strip-components=1 -C /opt/$KEYCLOAK_UNZIPED_DIR
+
+> sudo chown -R keycloak:keycloak /opt/$KEYCLOAK_UNZIPED_DIR
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Download JDBC and place it in /home/azrulhasni
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo wget -c $POSTGRESQL_JDBC_DOWNLOAD_URL -O - | tar -xzv --strip-components=1 -C $CURRENT_WORKING_DIR
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Copy the template configuration file into Keycloak and modify it accordingly
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#--copy proto standalone xml to standalone xml
+> sudo cp $CURRENT_WORKING_DIR/standalone.proto.xml /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration
+> sudo rm /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
+> sudo mv /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.proto.xml /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
+
+#--update standalone xml for jdbc url
+> sudo sed -i -e "s/YYY_JDBC_URL_YYY/$POSTGRESQL_JDBC_URL/g" /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
+
+#--update standalone xml for self signed cert creation
+> sudo sed -i -e "s/<keystore path=\"application\.keystore\" relative-to=\"jboss\.server\.config\.dir\" keystore-password=\"password\" alias=\"server\" key-password=\"password\" generate-self-signed-certificate-host=\"localhost\"\/>/<keystore path=\"application\.keystore\" relative-to=\"jboss\.server\.config\.dir\" keystore-password=\"password\" alias=\"keycloak\" key-password=\"password\" generate-self-signed-certificate-host=\"keycloak\"\/>/g" /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
+
+> sudo mkdir -p /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql/main
+> sudo cp $CURRENT_WORKING_DIR/$POSTGRESQL_JDBC_JAR /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql/main
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Copy JDBC jar and configure Keycloak to use it
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#----put JDBC jar in Keycloak
+> sudo cat << EOF | tee -a /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql/main/module.xml
+<?xml version="1.0" ?>
+<module xmlns="urn:jboss:module:1.3" name="org.postgresql">
+
+    <resources>
+        <resource-root path="$POSTGRESQL_JDBC_JAR"/>
+    </resources>
+
+    <dependencies>
+        <module name="javax.api"/>
+        <module name="javax.transaction.api"/>
+    </dependencies>
+</module>
+EOF
+
+> sudo chown -R keycloak:keycloak /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Declare Keycloak in systemd and start it
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#----declare Keycloak in systemd-------------
+> sudo cat > /etc/systemd/system/keycloak.service <<EOF
+
+[Unit]
+Description=Keycloak
+After=network.target
+
+[Service]
+Type=idle
+User=keycloak
+Group=keycloak
+ExecStart=/opt/$KEYCLOAK_UNZIPED_DIR/bin/standalone.sh -Djboss.socket.binding.port-offset=1000 -b=0.0.0.0
+TimeoutStartSec=600
+TimeoutStopSec=600
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+#---run keycloak in systemd------
+> sudo systemctl daemon-reload
+> sudo systemctl enable keycloak
+> sudo systemctl start keycloak
+> sudo systemctl status keycloak
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Keycloak should now start
+
+ 
+
+### Setup Minio for each host: Host2, Host3 and Host4
+
+-   Lastly, we will setup Minio
+
+-   We will copy Minio certificates from /home/azrulhasni to Minio certificate
+    folder
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo mkdir -p /home/minio/.minio/certs/CAs
+
+> sudo mv $CURRENT_WORKING_DIR/$MINIO_PUBLIC_CERT /home/minio/.minio/certs/public.crt
+> sudo mv $CURRENT_WORKING_DIR/$MINIO_PRIVATE_KEY /home/minio/.minio/certs/private.key 
+
+> sudo cp $CURRENT_WORKING_DIR/$OTHER_MINIO_PUBLIC_CERT1 /home/minio/.minio/certs/CAs
+> sudo cp $CURRENT_WORKING_DIR/$OTHER_MINIO_PUBLIC_CERT2 /home/minio/.minio/certs/CAs
+> sudo cp $CURRENT_WORKING_DIR/$OTHER_MINIO_PUBLIC_CERT3 /home/minio/.minio/certs/CAs
+
+> sudo chown -R minio:minio /home/minio/.minio
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Download Minio and install
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo curl $MINIO_DOWNLOAD_URL \
+  --create-dirs \
+  -o /opt/minio-binaries/minio
+> sudo chmod +x /opt/minio-binaries/minio
+
+> sudo ln /opt/minio-binaries/minio /usr/local/bin/minio
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Change Minio disk ownership
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ #--For disks----
+> sudo chown -R minio:minio /mnt/$DISK1
+> sudo chmod u+rxw /mnt/$DISK1
+> sudo chown -R minio:minio /mnt/$DISK2
+> sudo chmod u+rxw /mnt/$DISK2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Setup Minio default configuration
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo cat << EOF | tee -a  /etc/default/minio
+MINIO_ACCESS_KEY=$MINIO_USERNAME
+MINIO_SECRET_KEY=$MINIO_PASSWORD
+MINIO_VOLUMES=$MINIO_SERVERS
+EOF
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Setup Minio as systemd service and start it up
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-----Systemd config
+> sudo cat << EOF | tee -a /etc/systemd/system/minio.service
+[Unit]
+Description=MinIO
+Documentation=https://docs.min.io
+Wants=network-online.target
+After=network-online.target
+AssertFileIsExecutable=/usr/local/bin/minio
+
+[Service]
+WorkingDirectory=/home/minio
+
+User=minio
+Group=minio
+
+EnvironmentFile=/etc/default/minio
+ExecStartPre=/bin/bash -c "if [ -z \"\${MINIO_VOLUMES}\" ]; then echo \"Variable MINIO_VOLUMES not set in /etc/default/minio\"; exit 1; fi"
+
+ExecStart=/usr/local/bin/minio server \$MINIO_OPTS \$MINIO_VOLUMES
+
+# Let systemd restart this service always
+Restart=always
+
+# Specifies the maximum file descriptor number that can be opened by this process
+LimitNOFILE=65536
+
+# Specifies the maximum number of threads this process can create
+TasksMax=infinity
+
+# Disable timeout logic and wait until process is stopped
+TimeoutStopSec=infinity
+SendSIGKILL=no
+
+[Install]
+WantedBy=multi-user.target
+
+EOF
+
+#---Run-------------
+> sudo systemctl daemon-reload
+> sudo systemctl enable minio
+> sudo systemctl start minio
+> sudo systemctl status minio
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   By this stage we should have Minio starting up
+
+ 
+
+### Setup Nginx in Host5
+
+-   Install Nginx
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo apt install nginx
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Setup self-signed certificate for Nginx
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Next, we setup the [Diffie-Hellman (DH)
+    key-exchange](https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange)
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo openssl dhparam -out /etc/nginx/dhparam.pem 4096
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Attach the self signed certificates we created just now to Nginx
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+cat << EOF | tee -a /etc/nginx/snippets/self-signed.conf
+ssl_certificate /etc/ssl/certs/nginx-selfsigned.crt;
+ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
+EOF
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   dada
