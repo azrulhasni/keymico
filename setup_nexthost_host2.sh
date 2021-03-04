@@ -19,7 +19,7 @@
 #127.0.0.1 keycloak
  
  
-export CURRENT_WORKING_DIR=/home/azrulhasni
+export CURRENT_WORKING_DIR=/workingdir
 
 export COCKROACH_DOWNLOAD_URL=https://binaries.cockroachdb.com/cockroach-v20.2.5.linux-amd64.tgz
 export COCKROACH_UNZIPED_DIR=cockroach-v20.2.5.linux-amd64
@@ -34,10 +34,14 @@ export NODE_KEY=node.host2.key
 export MINIO_DOWNLOAD_URL=https://dl.min.io/server/minio/release/linux-amd64/minio
 export MINIO_USERNAME=minio-admin
 export MINIO_PASSWORD=1qazZAQ!
-export MINIO_SERVERS=https://host1/mnt/data11\ https://host1/mnt/data12\ https://host2/mnt/data21\ https://host2/mnt/data22\ https://host3/mnt/data31\ https://host3/mnt/data32\ https://host4/mnt/data41\ https://host4/mnt/data42 #spaces must be excaped
+export MINIO_SERVERS=https://host{1...4}/mnt/data{1...2}
+#export MINIO_SERVERS=https://host1/mnt/data11\ https://host1/mnt/data12\ https://host2/mnt/data21\ https://host2/mnt/data22\ https://host3/mnt/data31\ https://host3/mnt/data32\ https://host4/mnt/data41\ https://host4/mnt/data42 #spaces must be excaped
 
-export DISK1=data21
-export DISK2=data22
+export DISK1=data1
+export DISK2=data2
+export DISK1_NAME=/dev/disk/by-id/scsi-0DO_Volume_data21
+export DISK2_NAME=/dev/disk/by-id/scsi-0DO_Volume_data22
+
 export MINIO_PUBLIC_CERT=public2.crt
 export MINIO_PRIVATE_KEY=private2.key
 
@@ -66,7 +70,7 @@ export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host2:26257\/keycloakdb'
 
 
 #=====================COCKROACH DB===============
-adduser --gecos "cockroach" --disabled-password --home "/home/cockroach" "cockroach"
+ adduser --gecos "cockroach" --disabled-password --home "/home/cockroach" "cockroach"
 usermod -aG sudo cockroach
 
 
@@ -93,6 +97,8 @@ cp $CURRENT_WORKING_DIR/$CA_CRT /home/cockroach/certs/
 chmod 700 /home/cockroach/certs/node.crt
 chmod 700 /home/cockroach/certs/node.key
 chmod 700 /home/cockroach/certs/$CA_CRT
+
+chown -R cockroach:cockroach /home/cockroach/certs
 
 #--setup systemd
 cat << EOF | tee -a /etc/systemd/system/cockroach.service
@@ -126,8 +132,9 @@ systemctl status cockroach
 #=====================MINIO===============
 
 
+
 #-- add minio user
-useradd -m -p $(openssl passwd -crypt "1qazZAQ!") minio -s /bin/bash
+ useradd -m -p $(openssl passwd -crypt "1qazZAQ!") minio -s /bin/bash
 usermod -aG sudo minio
 
 
@@ -144,7 +151,7 @@ cp $CURRENT_WORKING_DIR/$OTHER_MINIO_PUBLIC_CERT3 /home/minio/.minio/certs/CAs
 
 #cd /home/minio
 
-#chown -R minio:minio .minio
+chown -R minio:minio /home/minio/.minio
 
 curl $MINIO_DOWNLOAD_URL \
   --create-dirs \
@@ -153,10 +160,19 @@ chmod +x /opt/minio-binaries/minio
 
 ln /opt/minio-binaries/minio /usr/local/bin/minio
 
+#--Create moun points for minio
+mkdir -p /mnt/$DISK1
+mount -o discard,defaults,noatime $DISK1_NAME /mnt/$DISK1
+echo "$DISK1_NAME /mnt/$DISK1 ext4 defaults,nofail,discard 0 0" | sudo tee -a /etc/fstab
+
+mkdir -p /mnt/$DISK2
+mount -o discard,defaults,noatime $DISK2_NAME /mnt/$DISK2
+echo "$DISK2_NAME /mnt/$DISK2 ext4 defaults,nofail,discard 0 0" | sudo tee -a /etc/fstab
+
 #--For disks----
-chown -R minio /mnt/$DISK1
+chown -R minio:minio /mnt/$DISK1
 chmod u+rxw /mnt/$DISK1
-chown -R minio /mnt/$DISK2
+chown -R minio:minio /mnt/$DISK2
 chmod u+rxw /mnt/$DISK2
 
 #---MINIO default info
@@ -213,17 +229,19 @@ systemctl status minio
 #-------------------KEYCLOAK------------------------------------------
 
 
-useradd -m -p $(openssl passwd -crypt "1qazZAQ!") keycloak -s /bin/bash
+ useradd -m -p $(openssl passwd -crypt "1qazZAQ!") keycloak -s /bin/bash
 usermod -aG sudo keycloak
 
 
-mkdir $KEYCLOAK_UNZIPED_DIR
+mkdir /opt/$KEYCLOAK_UNZIPED_DIR
 wget -c $KEYCLOAK_URL -O - | tar -xzv --strip-components=1 -C /opt/$KEYCLOAK_UNZIPED_DIR
 
 chown -R keycloak:keycloak /opt/$KEYCLOAK_UNZIPED_DIR
 
 #download JDBC jar
-wget -c $POSTGRESQL_JDBC_DOWNLOAD_URL -O - | tar -xzv --strip-components=1 -C $CURRENT_WORKING_DIR
+curl $POSTGRESQL_JDBC_DOWNLOAD_URL \
+  --create-dirs \
+  -o $CURRENT_WORKING_DIR/$POSTGRESQL_JDBC_JAR
 
 #--copy proto standalone xml to standalone xml
 cp $CURRENT_WORKING_DIR/standalone.proto.xml /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration
@@ -235,6 +253,8 @@ sed -i -e "s/YYY_JDBC_URL_YYY/$POSTGRESQL_JDBC_URL/g" /opt/$KEYCLOAK_UNZIPED_DIR
 
 #--update standalone xml for self signed cert creation
 sed -i -e "s/<keystore path=\"application\.keystore\" relative-to=\"jboss\.server\.config\.dir\" keystore-password=\"password\" alias=\"server\" key-password=\"password\" generate-self-signed-certificate-host=\"localhost\"\/>/<keystore path=\"application\.keystore\" relative-to=\"jboss\.server\.config\.dir\" keystore-password=\"password\" alias=\"keycloak\" key-password=\"password\" generate-self-signed-certificate-host=\"keycloak\"\/>/g" /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
+
+
 
 mkdir -p /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql/main
 cp $CURRENT_WORKING_DIR/$POSTGRESQL_JDBC_JAR /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql/main

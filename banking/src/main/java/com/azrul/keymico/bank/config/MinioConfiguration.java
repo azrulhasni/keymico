@@ -29,7 +29,6 @@ public class MinioConfiguration {
     public MinioClient minioClient(){
         MinioClient minioClient
                     = MinioClient.builder()
-                            //.httpClient(okHttpClient)
                             .endpoint(minioServerUrl)
                             .credentials(minioServerCred, minioServerPwd)
                             .build();

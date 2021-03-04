@@ -89,13 +89,13 @@ public class TransactionResource {
      * @param pageable the pagination information.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of transactions in body.
      */
-    @GetMapping("/transactions")
-    public ResponseEntity<List<Transaction>> getAllTransactions(Pageable pageable) {
-        log.debug("REST request to get a page of Transactions");
-        Page<Transaction> page = transactionService.findAll(pageable);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
-        return ResponseEntity.ok().headers(headers).body(page.getContent());
-    }
+//    @GetMapping("/transactions")
+//    public ResponseEntity<List<Transaction>> getAllTransactions(Pageable pageable) {
+//        log.debug("REST request to get a page of Transactions");
+//        Page<Transaction> page = transactionService.findAll(pageable);
+//        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+//        return ResponseEntity.ok().headers(headers).body(page.getContent());
+//    }
 
     /**
      * {@code GET  /transactions/:id} : get the "id" transaction.
@@ -116,10 +116,10 @@ public class TransactionResource {
      * @param id the id of the transaction to delete.
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
-    @DeleteMapping("/transactions/{id}")
-    public ResponseEntity<Void> deleteTransaction(@PathVariable Long id) {
-        log.debug("REST request to delete Transaction : {}", id);
-        transactionService.delete(id);
-        return ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString())).build();
-    }
+//    @DeleteMapping("/transactions/{id}")
+//    public ResponseEntity<Void> deleteTransaction(@PathVariable Long id) {
+//        log.debug("REST request to delete Transaction : {}", id);
+//        transactionService.delete(id);
+//        return ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString())).build();
+//    }
 }

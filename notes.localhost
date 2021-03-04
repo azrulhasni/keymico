@@ -29,3 +29,43 @@ sudo  openssl s_client -servername NAME -connect localhost:26258 |  sed -ne '/-B
 sudo openssl s_client -connect localhost:26258 </dev/null \
     | sudo sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /tmp/cockroach.localhost.cer
 sudo keytool -noprompt -import -file "/tmp/cockroach.localhost.cer" -keystore "$CACERTS_LOC" -alias "cockroachdb" -storepass  changeit
+
+
+sudo cat << EOF | tee -a /usr/local/etc/nginx/sites-available/default  
+  
+##--------/etc/nginx/sites-available/default------------  
+# Default server configuration  
+#  
+# Default server configuration  
+#  
+
+  
+upstream keycloak {  
+        #after 3 fails, take out the server for an hoiur  
+        server host1:9443 max_fails=3 fail_timeout=3600s;   
+        server host2:9443 max_fails=3 fail_timeout=3600s;  
+        server host3:9443 max_fails=3 fail_timeout=3600s;  
+}  
+server {  
+#       listen 80 default_server;  
+#       listen [::]:80 default_server;  
+  
+        
+  
+        root /var/www/html;  
+  
+        # Add index.php to the list if you are using PHP  
+        index index.html index.htm index.nginx-debian.html;  
+  
+        server_name _;  
+  
+        
+  
+        location /keycloak/ {  
+                # First attempt to serve request as file, then  
+                # as directory, then fall back to displaying a 404.  
+                proxy_pass https://keycloak;  
+        }  
+}  
+#-------------------------------------------------------  
+EOF

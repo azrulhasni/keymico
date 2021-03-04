@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 import java.util.logging.Level;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * Service Implementation for managing {@link Transaction}.
@@ -37,6 +38,9 @@ public class TransactionService {
     
     @Autowired
     MinioClient minioClient;
+    
+    @Value("${minio.server.bucket}")
+    String minioBucket;
 
     private final Logger log = LoggerFactory.getLogger(TransactionService.class);
 
@@ -58,7 +62,7 @@ public class TransactionService {
             try {
                 InputStream is = new ByteArrayInputStream(transaction.getFileBinaries());
                 minioClient.putObject(
-                        PutObjectArgs.builder().bucket("myuploads").object(transaction.getTransactionId()+"/"+transaction.getFile()).stream(
+                        PutObjectArgs.builder().bucket(minioBucket).object(transaction.getTransactionId()+"/"+transaction.getFile()).stream(
                                 is, is.available(), -1)
                                 .build());
             } catch (IOException | ErrorResponseException | InsufficientDataException | InternalException | InvalidKeyException | InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException ex) {
@@ -69,17 +73,17 @@ public class TransactionService {
         return transactionRepository.save(transaction);
     }
 
-    /**
-     * Get all the transactions.
-     *
-     * @param pageable the pagination information.
-     * @return the list of entities.
-     */
-    @Transactional(readOnly = true)
-    public Page<Transaction> findAll(Pageable pageable) {
-        log.debug("Request to get all Transactions");
-        return transactionRepository.findAll(pageable);
-    }
+//    /**
+//     * Get all the transactions.
+//     *
+//     * @param pageable the pagination information.
+//     * @return the list of entities.
+//     */
+//    @Transactional(readOnly = true)
+//    public Page<Transaction> findAll(Pageable pageable) {
+//        log.debug("Request to get all Transactions");
+//        return transactionRepository.findAll(pageable);
+//    }
 
 
     /**
@@ -95,7 +99,7 @@ public class TransactionService {
             try {
                 String tid = t.getTransactionId();
                 byte[] attachment = minioClient.getObject(GetObjectArgs
-                        .builder().bucket("myuploads").object(tid+"/"+t.getFile()).build()).readAllBytes();
+                        .builder().bucket(minioBucket).object(tid+"/"+t.getFile()).build()).readAllBytes();
                 t.setFileBinaries(attachment);
                 
             } catch (ErrorResponseException | InsufficientDataException | InternalException | InvalidKeyException | InvalidResponseException | IOException | NoSuchAlgorithmException | ServerException | XmlParserException ex) {
@@ -105,14 +109,14 @@ public class TransactionService {
         });
     }
 
-    /**
-     * Delete the transaction by id.
-     *
-     * @param id the id of the entity.
-     */
-    public void delete(Long id) {
-        log.debug("Request to delete Transaction : {}", id);
-        transactionRepository.deleteById(id);
-    }
+//    /**
+//     * Delete the transaction by id.
+//     *
+//     * @param id the id of the entity.
+//     */
+//    public void delete(Long id) {
+//        log.debug("Request to delete Transaction : {}", id);
+//        transactionRepository.deleteById(id);
+//    }
 }
        

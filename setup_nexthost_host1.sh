@@ -16,11 +16,11 @@
  #4) No node.key or ca.crt, node.crt for first host. We will create them here. Make sure we copy them back to other hosts
  
  #5) Make sure all these are in /etc/hosts
-        #178.62.14.47 host4
-        #167.172.50.90 host3
-        #165.22.92.3  host2
-        #46.101.1.218 host1
-        #127.0.0.1 keycloak
+138.68.83.11    host4
+46.101.246.150  host3
+46.101.63.38    host2
+139.59.175.78   host1
+127.0.0.1       keycloak
  #Make sure toime is sync to google
  
     #KEYCLOAK
@@ -46,32 +46,42 @@
             #/home/cockroach/certs3/node.host3.crt
             #/home/cockroach/certs3/node.host3.crt
  
-export CURRENT_WORKING_DIR=/home/azrulhasni
+export CURRENT_WORKING_DIR=/workingdir
 
 export COCKROACH_DOWNLOAD_URL=https://binaries.cockroachdb.com/cockroach-v20.2.5.linux-amd64.tgz
 export COCKROACH_UNZIPED_DIR=cockroach-v20.2.5.linux-amd64
 export HOST=host1
-export OTHER_HOSTS=host2,host3
+export HOST2=host2
+export HOST3=host3
+export HOST4=host4
 
 export CA_CRT=ca.crt
-export NODE_ACCESS_LIST=10.106.0.2 46.101.1.218 host1 ubuntu-s-4vcpu-8gb-lon1-01 localhost 127.0.0.1 #space seperated hostname/ip address used to access host1
+export NODE_ACCESS_LIST="139.59.175.78 host1 localhost 127.0.0.1" #space seperated hostname/ip address used to access host1
 
 export OTHER_NODE1=host2
 export OTHER_NODE1_CERT_FOLDER=/home/cockroach/certs2 
-export OTHER_NODE1_ACCESS_LIST=10.106.0.4 46.101.52.93 host2 ubuntu-s-4vcpu-8gb-lon1-02 localhost 127.0.0.1 #space seperated hostname/ip
+export OTHER_NODE1_ACCESS_LIST="46.101.63.38 host2 localhost 127.0.0.1" #space seperated hostname/ip
 
 export OTHER_NODE2=host3
 export OTHER_NODE2_CERT_FOLDER=/home/cockroach/certs3
-export OTHER_NODE2_ACCESS_LIST=10.106.0.3 167.172.50.90 host3 ubuntu-s-4vcpu-8gb-lon1-03 localhost 127.0.0.1 #space seperated 
+export OTHER_NODE2_ACCESS_LIST="46.101.246.150 host3 localhost 127.0.0.1" #space seperated 
 
 export MINIO_DOWNLOAD_URL=https://dl.min.io/server/minio/release/linux-amd64/minio
+export MINIO_CLIENT_DOWNLOAD_URL=https://dl.min.io/client/mc/release/linux-amd64/mc
 export GO_CERT_GENERATOR_URL=https://golang.org/src/crypto/tls/generate_cert.go?m=text
-export MINIO_USERNAME=minio-admin
+export MINIO_ADMIN_USERNAME=minio-admin
+export MINIO_ADMIN_PASSWORD=1qazZAQ!
+export MINIO_USERNAME=mystoreuser
 export MINIO_PASSWORD=1qazZAQ!
-export MINIO_SERVERS=https://host1/mnt/data11\ https://host1/mnt/data12\ https://host2/mnt/data21\ https://host2/mnt/data22\ https://host3/mnt/data31\ https://host3/mnt/data32\ https://host4/mnt/data41\ https://host4/mnt/data42 #spaces must be excaped
+#export MINIO_SERVERS=https://host1/mnt/data11\ https://host1/mnt/data12\ https://host2/mnt/data21\ https://host2/mnt/data22\ https://host3/mnt/data31\ https://host3/mnt/data32\ https://host4/mnt/data41\ https://host4/mnt/data42 #spaces must be excaped
+export MINIO_SERVERS=https://host{1...4}/mnt/data{1...2}
+export MINIO_ALIAS=mystore
+export MINIO_BUCKET=myuploads
 
-export DISK1=data11
-export DISK2=data12
+#export DISK1=data11
+#export DISK2=data12
+export DISK1=data1
+export DISK2=data2
 
 export KEYCLOAK_URL=https://github.com/keycloak/keycloak/releases/download/12.0.3/keycloak-12.0.3.tar.gz
 export KEYCLOAK_UNZIPED_DIR=keycloak-12.0.3
@@ -101,17 +111,15 @@ mkdir /home/cockroach/certs
 chown -R cockroach:cockroach /home/cockroach/certs
 
 
-cp $CURRENT_WORKING_DIR/$NODE_CRT /home/cockroach/certs
-mv /home/cockroach/certs/$NODE_CRT /home/cockroach/certs/node.crt
+#cp $CURRENT_WORKING_DIR/$NODE_CRT /home/cockroach/certs
+#mv /home/cockroach/certs/$NODE_CRT /home/cockroach/certs/node.crt
 
-cp $CURRENT_WORKING_DIR/$NODE_KEY /home/cockroach/certs
-mv /home/cockroach/certs/$NODE_KEY /home/cockroach/certs/node.key
+#cp $CURRENT_WORKING_DIR/$NODE_KEY /home/cockroach/certs
+#mv /home/cockroach/certs/$NODE_KEY /home/cockroach/certs/node.key
 
-cp $CURRENT_WORKING_DIR/$CA_CRT /home/cockroach/certs/
+#cp $CURRENT_WORKING_DIR/$CA_CRT /home/cockroach/certs/
 
-chmod 700 /home/cockroach/certs/node.crt
-chmod 700 /home/cockroach/certs/node.key
-chmod 700 /home/cockroach/certs/$CA_CRT
+
 
 mkdir /home/cockroach/my-safe-directory
 chown -R cockroach:cockroach /home/cockroach/my-safe-directory
@@ -126,11 +134,16 @@ $NODE_ACCESS_LIST \
 --certs-dir=/home/cockroach/certs \
 --ca-key=/home/cockroach/my-safe-directory/ca.key
 
+chmod 700 /home/cockroach/certs/node.crt
+chmod 700 /home/cockroach/certs/node.key
+chmod 700 /home/cockroach/certs/$CA_CRT
+
 
 mkdir $OTHER_NODE1_CERT_FOLDER
-chown -R cockroach:cockroach $OTHER_NODE1_CERT_FOLDER
 mkdir $OTHER_NODE2_CERT_FOLDER
-chown -R cockroach:cockroach $OTHER_NODE2_CERT_FOLDER
+
+cp /home/cockroach/certs/$CA_CRT $OTHER_NODE1_CERT_FOLDER
+cp /home/cockroach/certs/$CA_CRT $OTHER_NODE2_CERT_FOLDER
 
 cockroach cert create-node \
 $OTHER_NODE1_ACCESS_LIST \
@@ -149,6 +162,10 @@ mv $OTHER_NODE2_CERT_FOLDER/node.crt $OTHER_NODE2_CERT_FOLDER/node.$OTHER_NODE2.
 #Copy the content of host3 to other servers
 
 
+chown -R cockroach:cockroach $OTHER_NODE1_CERT_FOLDER
+chown -R cockroach:cockroach $OTHER_NODE2_CERT_FOLDER
+chown -R cockroach:cockroach /home/cockroach/certs/
+
 #--setup systemd
 cat << EOF | tee -a /etc/systemd/system/cockroach.service
 [Unit]
@@ -159,7 +176,7 @@ Requires=network.target
 Type=simple
 WorkingDirectory=/home/cockroach
 ExecStartPre=/bin/sleep 30
-ExecStart=/usr/local/bin/cockroach start --certs-dir=/home/cockroach/certs --host=$HOST --http-host=$HOST --join=$HOST,$OTHER_HOSTS --cache=25% --max-sql-memory=25%
+ExecStart=/usr/local/bin/cockroach start --certs-dir=/home/cockroach/certs --host=$HOST --http-host=$HOST --join=$HOST,$HOST2,$HOST3 --cache=25% --max-sql-memory=25%
 ExecStop=/usr/local/bin/cockroach quit --certs-dir=/home/cockroach/certs --host=$HOST
 Restart=always
 RestartSec=10
@@ -178,13 +195,31 @@ systemctl enable cockroach
 systemctl start cockroach
 systemctl status cockroach
 
+cockroach cert create-client \
+    root \
+    --certs-dir=/home/cockroach/certs \
+    --ca-key=/home/cockroach/my-safe-directory/ca.key
+    
+chown -R cockroach:cockroach /home/cockroach/certs/
+
 #--only for first host--
-cockroach init --certs-dir=/home/cockroach/certs --host=$HOST1
+#su -m cockroach -c "cockroach init --certs-dir=\/home\/cockroach\/certs --host=$HOST1"
+cockroach init --certs-dir=/home/cockroach/certs --host=$HOST
 
 cockroach cert create-client \
     banking \
     --certs-dir=/home/cockroach/certs \
     --ca-key=/home/cockroach/my-safe-directory/ca.key
+    
+cockroach cert create-client \
+    keycloak \
+    --certs-dir=/home/cockroach/certs \
+    --ca-key=/home/cockroach/my-safe-directory/ca.key
+    
+cockroach --certs-dir=/home/cockroach/certs --host=$HOST sql < $CURRENT_WORKING_DIR/keycloak_create_user_db.sql
+cockroach --certs-dir=/home/cockroach/certs --database=keycloakdb --host=$HOST sql < $CURRENT_WORKING_DIR/keycloak_create_no_constraints.sql
+cockroach --certs-dir=/home/cockroach/certs --database=keycloakdb --host=$HOST sql < $CURRENT_WORKING_DIR/keycloak_data.sql
+cockroach --certs-dir=/home/cockroach/certs --database=keycloakdb --host=$HOST sql < $CURRENT_WORKING_DIR/keycloak_add_constraints.sql
 
 #=====================MINIO===============
 
@@ -196,36 +231,42 @@ usermod -aG sudo minio
 
 mkdir -p /home/minio/.minio/certs/CAs
 
-
-wget -c $GO_CERT_GENERATOR_URL -O - | tar -xzv --strip-components=1 -C /home/minio/
-go run generate_cert.go -ca --host "$HOST1"
+curl $GO_CERT_GENERATOR_URL \
+  --create-dirs \
+  -o /home/minio/generate_cert.go
+cd /home/minio/
+go run /home/minio/generate_cert.go -ca --host "$HOST"
 mv /home/minio/cert.pem /home/minio/.minio/certs/public.crt
 mv /home/minio/key.pem  /home/minio/.minio/certs/private.key
 cp /home/minio/.minio/certs/public.crt /home/minio/
 mv /home/minio/public.crt /home/minio/public1.crt 
+cp /home/minio/public1.crt /home/minio/.minio/certs/CAs
 
-go run generate_cert.go -ca --host "$HOST2"
+go run /home/minio/generate_cert.go -ca --host "$HOST2"
 mv /home/minio/cert.pem /home/minio/.minio/certs/public2.crt
 cp /home/minio/.minio/certs/public2.crt /home/minio/
-mv /home/minio/key.pem  /home/minio/private2.key 
-cp /home/minio/.minio/certs/private2.key  /home/minio/
+mv /home/minio/key.pem  /home/minio/private2.key
+cp /home/minio/.minio/certs/public2.crt /home/minio/.minio/certs/CAs
 
-go run generate_cert.go -ca --host "$HOST3"
+go run /home/minio/generate_cert.go -ca --host "$HOST3"
 mv /home/minio/cert.pem /home/minio/.minio/certs/public3.crt
 cp /home/minio/.minio/certs/public3.crt /home/minio/
-mv /home/minio/key.pem  /home/minio/private3.key 
-cp /home/minio/.minio/certs/private3.key  /home/minio/
+mv /home/minio/key.pem  /home/minio/private3.key
+cp /home/minio/.minio/certs/public3.crt /home/minio/.minio/certs/CAs
 
-go run generate_cert.go -ca --host "$HOST4"
+go run /home/minio/generate_cert.go -ca --host "$HOST4"
 mv /home/minio/cert.pem /home/minio/.minio/certs/public4.crt
 cp /home/minio/.minio/certs/public4.crt /home/minio/
-mv /home/minio/key.pem  /home/minio/private4.key 
-cp /home/minio/.minio/certs/private4.key  /home/minio/
+mv /home/minio/key.pem  /home/minio/private4.key
+cp /home/minio/.minio/certs/public4.crt /home/minio/.minio/certs/CAs
 
 
 #cd /home/minio
 
-#chown -R minio:minio .minio
+chown -R minio:minio /home/minio/
+
+
+
 
 curl $MINIO_DOWNLOAD_URL \
   --create-dirs \
@@ -235,15 +276,15 @@ chmod +x /opt/minio-binaries/minio
 ln /opt/minio-binaries/minio /usr/local/bin/minio
 
 #--For disks----
-chown -R minio /mnt/$DISK1
+chown -R minio:minio /mnt/$DISK1
 chmod u+rxw /mnt/$DISK1
-chown -R minio /mnt/$DISK2
+chown -R minio:minio /mnt/$DISK2
 chmod u+rxw /mnt/$DISK2
 
 #---MINIO default info
 cat << EOF | tee -a  /etc/default/minio
-MINIO_ACCESS_KEY=$MINIO_USERNAME
-MINIO_SECRET_KEY=$MINIO_PASSWORD
+MINIO_ACCESS_KEY=$MINIO_ADMIN_USERNAME
+MINIO_SECRET_KEY=$MINIO_ADMIN_PASSWORD
 MINIO_VOLUMES=$MINIO_SERVERS
 EOF
 
@@ -285,16 +326,41 @@ WantedBy=multi-user.target
 
 EOF
 
-#---Run-------------
+#---Run-------------------------------------
+
+chown -R minio:minio /home/minio
+
 systemctl daemon-reload
 systemctl enable minio
 systemctl start minio
 systemctl status minio
 
+
+
+
+#---Download and install Minio Client-------
+curl $MINIO_CLIENT_DOWNLOAD_URL \
+  --create-dirs \
+  -o /opt/minio-binaries/mc
+chmod +x /opt/minio-binaries/mc
+
+ln /opt/minio-binaries/mc /usr/local/bin/mc
+
+#---Create Minio user and bucket----------------------
+
+mc --insecure alias set $MINIO_ALIAS https://$HOST:9000 $MINIO_ADMIN_USERNAME $MINIO_ADMIN_PASSWORD
+
+#Alias mystore can be used to, say, add user
+mc --insecure admin user add $MINIO_ALIAS $MINIO_USERNAME $MINIO_PASSWORD
+mc --insecure admin policy set $MINIO_ALIAS readwrite user=$MINIO_USERNAME
+
+#Also add a bucket
+mc --insecure mb $MINIO_ALIAS/$MINIO_BUCKET
+
 #-------------------KEYCLOAK------------------------------------------
 
 
-useradd -m -p $(openssl passwd -crypt "1qazZAQ!") keycloak -s /bin/bash
+ useradd -m -p $(openssl passwd -crypt "1qazZAQ!") keycloak -s /bin/bash
 usermod -aG sudo keycloak
 
 
@@ -304,7 +370,9 @@ wget -c $KEYCLOAK_URL -O - | tar -xzv --strip-components=1 -C /opt/$KEYCLOAK_UNZ
 chown -R keycloak:keycloak /opt/$KEYCLOAK_UNZIPED_DIR
 
 #download JDBC jar
-wget -c $POSTGRESQL_JDBC_DOWNLOAD_URL -O - | tar -xzv --strip-components=1 -C $CURRENT_WORKING_DIR
+curl $POSTGRESQL_JDBC_DOWNLOAD_URL \
+  --create-dirs \
+  -o $CURRENT_WORKING_DIR/$POSTGRESQL_JDBC_JAR
 
 #--copy proto standalone xml to standalone xml
 cp $CURRENT_WORKING_DIR/standalone.proto.xml /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration
@@ -316,6 +384,9 @@ sed -i -e "s/YYY_JDBC_URL_YYY/$POSTGRESQL_JDBC_URL/g" /opt/$KEYCLOAK_UNZIPED_DIR
 
 #--update standalone xml for self signed cert creation
 sed -i -e "s/<keystore path=\"application\.keystore\" relative-to=\"jboss\.server\.config\.dir\" keystore-password=\"password\" alias=\"server\" key-password=\"password\" generate-self-signed-certificate-host=\"localhost\"\/>/<keystore path=\"application\.keystore\" relative-to=\"jboss\.server\.config\.dir\" keystore-password=\"password\" alias=\"keycloak\" key-password=\"password\" generate-self-signed-certificate-host=\"keycloak\"\/>/g" /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
+
+
+
 
 mkdir -p /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql/main
 cp $CURRENT_WORKING_DIR/$POSTGRESQL_JDBC_JAR /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql/main

@@ -219,7 +219,7 @@ to take out `-p` and you will be prompt for a password):
 -   minio
 
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    >  sudo useradd -m -p $(openssl passwd -crypt "<some password>") minio -s /bin/bash
+    >  sudo useradd -m -p $(openssl passwd -crypt "1qazZAQ!") minio -s /bin/bash
     > sudo usermod -aG sudo minio
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -424,6 +424,10 @@ The following instructions is only for Host1
 
  
 
+ 
+
+ 
+
 ### Environment variables
 
 The list below is the environment variables mainly for Host1.
@@ -434,24 +438,14 @@ export CURRENT_WORKING_DIR=/home/azrulhasni
 #-----------COCKROACHDB ENVIRONMENT VARIABLES---------------------
 #-----------------------------------------------------------------
 
-#Where to download CockroachDB
 export COCKROACH_DOWNLOAD_URL=https://binaries.cockroachdb.com/cockroach-v20.2.5.linux-amd64.tgz
 export COCKROACH_UNZIPED_DIR=cockroach-v20.2.5.linux-amd64
-
-#The current host we are setting up
-export HOST=host1 
-
-#Other hosts for CockroachDB
+export HOST=host1
 export OTHER_HOSTS=host2,host3
 
-#Name of CA cert file we will create for CockroachDB
 export CA_CRT=ca.crt
-
-#List of other access end point of Host 1
 export NODE_ACCESS_LIST=10.106.0.2 46.101.1.218 host1 ubuntu-s-4vcpu-8gb-lon1-01 localhost 127.0.0.1 #space seperated hostname/ip address used to access host1
 
-#We will create CockroachDB certs for other nodes in Host 1 itself. 
-#So specifiy some info on those other nodes 
 export OTHER_NODE1=host2
 export OTHER_NODE1_CERT_FOLDER=/home/cockroach/certs2 
 export OTHER_NODE1_ACCESS_LIST=10.106.0.4 46.101.52.93 host2 ubuntu-s-4vcpu-8gb-lon1-02 localhost 127.0.0.1 #space seperated hostname/ip
@@ -462,43 +456,37 @@ export OTHER_NODE2_ACCESS_LIST=10.106.0.3 167.172.50.90 host3 ubuntu-s-4vcpu-8gb
 
 
 #-----------MINIO ENVIRONMENT VARIABLES---------------------
-#-----------------------------------------------------------------
+#-----------------------------------------------------------
 
-# --- Where to download Minio
 export MINIO_DOWNLOAD_URL=https://dl.min.io/server/minio/release/linux-amd64/minio
-
-#We will use the GO script below to generate certs for Minio
+export MINIO_CLIENT_DOWNLOAD_URL=https://dl.min.io/client/mc/release/linux-amd64/mc
 export GO_CERT_GENERATOR_URL=https://golang.org/src/crypto/tls/generate_cert.go?m=text
 
-#Minio default users
-export MINIO_USERNAME=minio-admin
- export MINIO_PASSWORD=1qazZAQ!
+#--Minio admin user
+export MINIO_ADMIN_USERNAME=minio-admin
+export MINIO_ADMIN_PASSWORD=<minio admin password>
 
-#Specify all minio server - we can use Minio expression language. 
-#Spaces must be escaped
-export MINIO_SERVERS=https://host1/mnt/data11\ https://host1/mnt/data12\ https://host2/mnt/data21\ https://host2/mnt/data22\ https://host3/mnt/data31\ https://host3/mnt/data32\ https://host4/mnt/data41\ https://host4/mnt/data42 
+#--Minio system user
+export MINIO_USERNAME=mystoreuser
+export MINIO_PASSWORD=<minio user password>
 
-#Disk name for this host
+export MINIO_SERVERS=https://host1/mnt/data11\ https://host1/mnt/data12\ https://host2/mnt/data21\ https://host2/mnt/data22\ https://host3/mnt/data31\ https://host3/mnt/data32\ https://host4/mnt/data41\ https://host4/mnt/data42 #spaces must be excaped
+
+export MINIO_ALIAS=mystore
+export MINIO_BUCKET=myuploads
+
 export DISK1=data11
 export DISK2=data12
 
 
 #-----------KEYCLOAK ENVIRONMENT VARIABLES---------------------
-#-----------------------------------------------------------------
+#--------------------------------------------------------------
 
-#Where to download Keycloak
 export KEYCLOAK_URL=https://github.com/keycloak/keycloak/releases/download/12.0.3/keycloak-12.0.3.tar.gz
 export KEYCLOAK_UNZIPED_DIR=keycloak-12.0.3
-
-#Postgresql JDBC jar download URL
 export POSTGRESQL_JDBC_DOWNLOAD_URL=https://jdbc.postgresql.org/download/postgresql-42.2.19.jar
-
-#Postgresql JDBC jar
 export POSTGRESQL_JDBC_JAR=postgresql-42.2.18.jar
-
-
-export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host1:26257\/keycloakdb' 
-#!!!-this url must be escaped - use https://dwaves.de/tools/escape/
+export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host1:26257\/keycloakdb' #!!!-this url must be escaped - use https://dwaves.de/tools/escape/
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
  
@@ -751,7 +739,7 @@ Let us install the JDK
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> sudo openssl s_client -connect $HOST:26257 </dev/null     | sudo sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > cockroach.$HOST.cer
+> sudo openssl s_client -connect $HOST:26257 </dev/null     | sudo sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /tmp/cockroach.$HOST.cer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -926,7 +914,7 @@ If all goes well, Keycloak will be started and we can use it right away.
 
 ### Setting up Keycloak realm, client and user
 
--   Access Keycloak’s administrator portal at https://host4:9080/auth. If you
+-   Access Keycloak’s administrator portal at https://host4:9443/auth. If you
     used the sql files we provided above the administrator login is admin with
     password abbc123. We advise that you change the password immediately.
 
@@ -1140,6 +1128,40 @@ EOF
 
 -   if all goes well, Minio should be up and running
 
+-   Next, we will need to download Minio Client and create a user. Run the
+    command:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo curl $MINIO_CLIENT_DOWNLOAD_URL \
+  --create-dirs \
+  -o /opt/minio-binaries/mc
+
+> sudo chmod +x /opt/minio-binaries/mc
+
+> sudo ln /opt/minio-binaries/mc /usr/local/bin/mc
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   We then use Minio Client to create a user
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#---Create Minio user----------------------
+
+> sudo mc --insecure alias set $MINIO_ALIAS https://$HOST:9000 $MINIO_ADMIN_USERNAME $MINIO_ADMIN_PASSWORD
+
+#Alias mystore can be used to, say, add user
+> sudo mc --insecure admin user add $MINIO_ALIAS $MINIO_USERNAME $MINIO_PASSWORD
+> sudo mc --insecure admin policy set $MINIO_ALIAS readwrite user=$MINIO_USERNAME
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Lastly, let us create a bucket for Minio
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#Also add a bucket
+> sudo mc --insecure mb $MINIO_ALIAS/$MINIO_BUCKET
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-    
+
 -   Congratulations! We have set up our first host.
 
  
@@ -1221,7 +1243,7 @@ export NODE_KEY=node.host2.key
 
 export MINIO_DOWNLOAD_URL=https://dl.min.io/server/minio/release/linux-amd64/minio
 export MINIO_USERNAME=minio-admin
-export MINIO_PASSWORD=1qazZAQ!
+export MINIO_PASSWORD=<minio admin password>
 export MINIO_SERVERS=https://host1/mnt/data11\ https://host1/mnt/data12\ https://host2/mnt/data21\ https://host2/mnt/data22\ https://host3/mnt/data31\ https://host3/mnt/data32\ https://host4/mnt/data41\ https://host4/mnt/data42 #spaces must be excaped
 
 export DISK1=data21
@@ -1265,7 +1287,7 @@ export NODE_KEY=node.host3.key
 
 export MINIO_DOWNLOAD_URL=https://dl.min.io/server/minio/release/linux-amd64/minio
 export MINIO_USERNAME=minio-admin
-export MINIO_PASSWORD=1qazZAQ!
+export MINIO_PASSWORD=<minio admin password>
 export MINIO_SERVERS=https://host1/mnt/data11\ https://host1/mnt/data12\ https://host2/mnt/data21\ https://host2/mnt/data22\ https://host3/mnt/data31\ https://host3/mnt/data32\ https://host4/mnt/data41\ https://host4/mnt/data42 #spaces must be excaped
 
 export DISK1=data31
@@ -1304,7 +1326,7 @@ export HOST=host4
 
 export MINIO_DOWNLOAD_URL=https://dl.min.io/server/minio/release/linux-amd64/minio
 export MINIO_USERNAME=minio-admin
-export MINIO_PASSWORD=1qazZAQ!
+export MINIO_PASSWORD=<minio admin password>
 export MINIO_SERVERS=https://host1/mnt/data11\ https://host1/mnt/data12\ https://host2/mnt/data21\ https://host2/mnt/data22\ https://host3/mnt/data31\ https://host3/mnt/data32\ https://host4/mnt/data41\ https://host4/mnt/data42 #spaces must be excaped
 
 export DISK1=data41
@@ -1599,8 +1621,9 @@ EOF
 > sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/nginx-selfsigned.key -out /etc/ssl/certs/nginx-selfsigned.crt
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   Next, we setup the [Diffie-Hellman (DH)
-    key-exchange](https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange)
+-   Next, we setup the Diffie-Hellman (DH) key-exchange. Read more about
+    Diffie-Hellman here
+    [<https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange>]
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 > sudo openssl dhparam -out /etc/nginx/dhparam.pem 4096
@@ -1609,10 +1632,235 @@ EOF
 -   Attach the self signed certificates we created just now to Nginx
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-cat << EOF | tee -a /etc/nginx/snippets/self-signed.conf
+> sudo cat << EOF | tee -a /etc/nginx/snippets/self-signed.conf
 ssl_certificate /etc/ssl/certs/nginx-selfsigned.crt;
 ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
 EOF
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   dada
+-   We then specify Nginx load balancer and error handling configuration
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+> sudo cat << EOF | tee -a /etc/nginx/sites-available/default
+
+##--------/etc/nginx/sites-available/default------------
+# Default server configuration
+#
+# Default server configuration
+#
+upstream keymicobank {
+        #after 3 fails, take out the server for an hoiur
+        server host1:18080 max_fails=3 fail_timeout=3600s; 
+        server host2:18080 max_fails=3 fail_timeout=3600s;
+        server host3:18080 max_fails=3 fail_timeout=3600s;
+}
+
+upstream keycloak {
+        #after 3 fails, take out the server for an hoiur
+        server host1:9443 max_fails=3 fail_timeout=3600s; 
+        server host2:9443 max_fails=3 fail_timeout=3600s;
+        server host3:9443 max_fails=3 fail_timeout=3600s;
+}
+server {
+#       listen 80 default_server;
+#       listen [::]:80 default_server;
+
+        # SSL configuration
+        #
+        listen 8443 ssl default_server;
+        listen [::]:8443 ssl default_server;
+        include snippets/self-signed.conf;
+        include snippets/ssl-params.conf;
+
+        root /var/www/html;
+
+        # Add index.php to the list if you are using PHP
+        index index.html index.htm index.nginx-debian.html;
+
+        server_name _;
+
+        location / { 
+                # First attempt to serve request as file, then
+                # as directory, then fall back to displaying a 404.
+                proxy_pass http://keymicobank;
+        }
+
+        #if there is auth in the URL, it must be Keycloak - so send it there
+        location ^~ /auth/  { 
+                # First attempt to serve request as file, then
+                # as directory, then fall back to displaying a 404.
+                proxy_pass https://keycloak;
+        }
+}
+#-------------------------------------------------------
+EOF
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   We have 2 upstream blocks. These blocks are for our application (keymicobank
+    and Keycloak).
+
+-   Requests coming in will be round robbin to the underlying hosts. Fortunately
+    for us, all the database and object store we used are sync. Therefore, one
+    request can hit one host and the next request can hit another - and this is
+    OK.
+
+-   In case of failure to respond from the server, the load balancer will keep
+    tabs on the failure. When we have 3 failures, the server will be taken out
+    of commission for an hour
+
+-   The load balancer is working in host5. So:
+
+    https://host5:8443/... -\> will go to the application (Keymicobank)
+
+    https://host5:8443/auth/... -\> will go to Keycloak
+
+-   We have now completed the setup of Keymico! Congratulation!
+
+ 
+
+ 
+
+Developing our application
+--------------------------
+
+### Application flow
+
+Now that our environment is ready, let us take a look at what our application
+will do. In short, we will create a transaction and will read it back.
+
+![](README.images/TKI4yl.jpg)
+
+1.  We will log in through Keycloak, Keycloak will provide us an access token
+
+2.  We will use the access token to create a banking transaction. We will
+    provide from which account, to which account, the amount and a file
+
+3.  The transaction is stored in the database. The primary key of the
+    transaction table is the transaction number. We will get back a transaction
+    number in return (auto increment field)
+
+4.  The file is stored in the object store. The folder name we use = transaction
+    number.  In reality, a banking transaction does need to  be accompanied with
+    a file - this is just so that we can test the file upload API to our object
+    store
+
+5.  We will read back the transaction we created using the transaction number
+
+6.  We will query the database for the transaction we created just now using the
+    transaction number
+
+7.  We will also read the file we created just now by downloading from the
+    folder = transaction number
+
+ 
+
+-   **Important note: **All the API calls from the client above go through a
+    load balancer. This means that, although we query data we just added, the
+    data creation and query will land on different servers. So, when we test our
+    application later, we will test the Keymico stack -** and its data
+    replication capability** at the same time
+
+ 
+
+### Setting up with JHipster
+
+-   To help us with our application development, we are going to use JHipster.
+    JHipster will enable us to quickly create a Spring Boot + Angular
+    application tied to a database. To install JHipster, please follow the
+    instruction here <https://www.jhipster.tech/installation/>
+
+-   Create a directory named “banking”, say under /Users/\<your user
+    name\>/projects/banking. From now, we will refer to this directory as
+    \$BANKING. Fire up your command line console and go to the banking
+    directory. Type:
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    > jhipster
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ 
+
+-   This will bring up JHipster generator - in particular choose:
+
+1.  The name of the application as “banking"
+
+2.  For authentication, choose OAuth 2.0 since we will connect our app to
+    Keycloak
+
+3.  For database, choose PostgreSQL as it is CockroachDB compatible
+
+ 
+
+![](README.images/JiB5lK.jpg)
+
+ 
+
+### Add data model to application
+
+-   Next we will put in the data model supporting our application. For us, we
+    use this file here
+    <https://github.com/azrulhasni/keymico/blob/main/banking/datamodel.jh>.
+    Download the data model.jh and put it in your \$BANKING directory
+
+-   The data model, graphically looks like this:
+
+![](README.images/yA2XHU.jpg)
+
+-   For this application, we are focusing mainly on Transaction
+
+-   To load this model into our application, fire up your command line console
+    and point it ot the \$BANKING directory. Run:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> jhipster jdl ./datamodel.jh
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ 
+
+### Add add file manipulation logic
+
+ 
+
+If you notice, we have a field called fileBinaries of type Blob in our data
+model. We will change JHipster code a little bit, instead of saving this field
+to the database, we will save it to Minio. During query, we will retrieve this
+field and populate back the same field on the JSON response.
+
+ 
+
+-   Firstly, let us configure Minio on our app.
+
+-   Open up the file \$BANKING/src/main/resources/config/application.yml and add
+    Minio configuration below at the bottom of the file [source code:
+    <https://github.com/azrulhasni/keymico/blob/main/banking/src/main/resources/config/application.yml>]
+
+<https://github.com/azrulhasni/keymico/blob/main/banking/src/main/resources/config/application.yml>
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+minio:
+    server:
+        url: https://localhost:9000
+        credential: mystoreuser #from MINIO_USERNAME in the environment variable
+        password: <minio user password>
+        bucket: myuploads
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Save the file
+
+-   Next open the folder \$BANKING/src/main/java/com/azrul/keymico/bank/config/ 
+    and add MinioConfig.java file in there. [source code:
+    <https://github.com/azrulhasni/keymico/blob/main/banking/src/main/java/com/azrul/keymico/bank/config/MinioConfiguration.java>]
+
+![](README.images/gHFcyN.jpg)
+
+-   This will create a bean called minioClient that we can use to call Minio
+
+-   Then, open the file
+    \$BANKING/src/main/java/com/azrul/keymico/bank/service/TransactionService.java .
+    Modify save and findOne method as per below. Note we do not need any other
+    methods. If you do comment them out, make sure you comment out their
+    resources in
+
+![](README.images/GDUrp6.jpg)
