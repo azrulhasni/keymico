@@ -39,7 +39,7 @@ fair due.
  
 
 Apart from global politics, technology lock in is another risk of using only one
-CSP. So we coded our business logic as a server less component on AWS, want to
+CSP. So we coded our business logic as a serverless component on AWS, want to
 move that to Azure - well, that is not possible without recoding it. Another
 aspect of lock down is data. Even if we are using standard base technology (such
 as a SQL compatible database) - it will still take a huge time to transfers
@@ -1342,7 +1342,6 @@ export OTHER_MINIO_PRIVATE_KEY2=private2.key
 
 export OTHER_MINIO_PUBLIC_CERT3=public3.crt
 export OTHER_MINIO_PRIVATE_KEY3=private3.key
-
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
  
@@ -1641,8 +1640,6 @@ EOF
 -   We then specify Nginx load balancer and error handling configuration
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
 > sudo cat << EOF | tee -a /etc/nginx/sites-available/default
 
 ##--------/etc/nginx/sites-available/default------------
@@ -1742,8 +1739,8 @@ will do. In short, we will create a transaction and will read it back.
     number in return (auto increment field)
 
 4.  The file is stored in the object store. The folder name we use = transaction
-    number.  In reality, a banking transaction does need to  be accompanied with
-    a file - this is just so that we can test the file upload API to our object
+    number. In reality, a banking transaction does need to be accompanied with a
+    file - this is just so that we can test the file upload API to our object
     store
 
 5.  We will read back the transaction we created using the transaction number
@@ -1756,11 +1753,11 @@ will do. In short, we will create a transaction and will read it back.
 
  
 
--   **Important note: **All the API calls from the client above go through a
+-   **Important note:** All the API calls from the client above go through a
     load balancer. This means that, although we query data we just added, the
     data creation and query will land on different servers. So, when we test our
-    application later, we will test the Keymico stack -** and its data
-    replication capability** at the same time
+    application later, we will test the Keymico stack -\*\* and its data
+    replication capability\*\* at the same time
 
  
 

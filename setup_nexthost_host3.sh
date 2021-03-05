@@ -61,7 +61,7 @@ export KEYCLOAK_URL=https://github.com/keycloak/keycloak/releases/download/12.0.
 export KEYCLOAK_UNZIPED_DIR=keycloak-12.0.3
 export POSTGRESQL_JDBC_DOWNLOAD_URL=https://jdbc.postgresql.org/download/postgresql-42.2.19.jar
 export POSTGRESQL_JDBC_JAR=postgresql-42.2.18.jar
-export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host3:26257\/keycloakdb'
+export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host3:26257\/keycloakdb?sslmode=verify-full\&amp;sslrootcert=\/home\/cockroach\/certs\/ca\.crt'
 
 #!!!-this url must be escaped - use https://dwaves.de/tools/escape/
 
@@ -95,7 +95,7 @@ cp $CURRENT_WORKING_DIR/$CA_CRT /home/cockroach/certs/
 
 chmod 700 /home/cockroach/certs/node.crt
 chmod 700 /home/cockroach/certs/node.key
-chmod 700 /home/cockroach/certs/$CA_CRT
+chmod 744 /home/cockroach/certs/$CA_CRT
 
 chown -R cockroach:cockroach /home/cockroach/certs
 

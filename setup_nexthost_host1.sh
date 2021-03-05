@@ -87,7 +87,7 @@ export KEYCLOAK_URL=https://github.com/keycloak/keycloak/releases/download/12.0.
 export KEYCLOAK_UNZIPED_DIR=keycloak-12.0.3
 export POSTGRESQL_JDBC_DOWNLOAD_URL=https://jdbc.postgresql.org/download/postgresql-42.2.19.jar
 export POSTGRESQL_JDBC_JAR=postgresql-42.2.18.jar
-export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host1:26257\/keycloakdb' #!!!-this url must be escaped - use https://dwaves.de/tools/escape/
+export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host1:26257\/keycloakdb?sslmode=verify-full\&amp;sslrootcert=\/home\/cockroach\/certs\/ca\.crt' #!!!-this url must be escaped - use https://dwaves.de/tools/escape/
 
 
 
@@ -136,7 +136,7 @@ $NODE_ACCESS_LIST \
 
 chmod 700 /home/cockroach/certs/node.crt
 chmod 700 /home/cockroach/certs/node.key
-chmod 700 /home/cockroach/certs/$CA_CRT
+chmod 744 /home/cockroach/certs/$CA_CRT
 
 
 mkdir $OTHER_NODE1_CERT_FOLDER
@@ -206,15 +206,7 @@ chown -R cockroach:cockroach /home/cockroach/certs/
 #su -m cockroach -c "cockroach init --certs-dir=\/home\/cockroach\/certs --host=$HOST1"
 cockroach init --certs-dir=/home/cockroach/certs --host=$HOST
 
-cockroach cert create-client \
-    banking \
-    --certs-dir=/home/cockroach/certs \
-    --ca-key=/home/cockroach/my-safe-directory/ca.key
-    
-cockroach cert create-client \
-    keycloak \
-    --certs-dir=/home/cockroach/certs \
-    --ca-key=/home/cockroach/my-safe-directory/ca.key
+
     
 cockroach --certs-dir=/home/cockroach/certs --host=$HOST sql < $CURRENT_WORKING_DIR/keycloak_create_user_db.sql
 cockroach --certs-dir=/home/cockroach/certs --database=keycloakdb --host=$HOST sql < $CURRENT_WORKING_DIR/keycloak_create_no_constraints.sql
@@ -434,3 +426,9 @@ systemctl daemon-reload
 systemctl enable keycloak
 systemctl start keycloak
 systemctl status keycloak
+
+
+#-------------------APPLICATION ----------------------------------------------
+
+export CACERTS_LOC=/usr/lib/jvm/java-11-openjdk-amd64/lib/security/cacerts
+
