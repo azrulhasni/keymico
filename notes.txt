@@ -583,3 +583,13 @@ server {
 
 > nginx -t
 > sudo systemctl restart nginx
+
+
+curl -k --location --request POST 'https://localhost:8443/auth/realms/banking/protocol/openid-connect/token' \
+--header 'Content-Type: application/x-www-form-urlencoded' \
+--header 'Authorization: Basic Og==' \
+--data-urlencode 'username=donald.duck' \
+--data-urlencode 'password=abc123' \
+--data-urlencode 'client_id=bankingclient' \
+--data-urlencode 'client_secret=46b52fe2-03c1-423d-a9fc-027239483da9' \
+--data-urlencode 'grant_type=password'
