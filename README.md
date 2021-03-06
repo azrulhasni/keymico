@@ -1637,60 +1637,114 @@ ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
 EOF
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+-   Set SSL parameter
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo cat << EOF | tee -a /etc/nginx/snippets/ssl-params.conf
+#--------/etc/nginx/snippets/ssl-params.conf------------
+ssl_protocols TLSv1.2;
+ssl_prefer_server_ciphers on;
+ssl_dhparam /etc/nginx/dhparam.pem;
+ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384;
+ssl_ecdh_curve secp384r1; # Requires nginx >= 1.1.0
+ssl_session_timeout  10m;
+ssl_session_cache shared:SSL:10m;
+ssl_session_tickets off; # Requires nginx >= 1.5.9
+ssl_stapling on; # Requires nginx >= 1.3.7
+ssl_stapling_verify on; # Requires nginx => 1.3.7
+resolver 8.8.8.8 8.8.4.4 valid=300s;
+resolver_timeout 5s;
+# Disable strict transport security for now. You can uncomment the following
+# line if you understand the implications.
+# add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload";
+add_header X-Frame-Options DENY;
+add_header X-Content-Type-Options nosniff;
+add_header X-XSS-Protection "1; mode=block";
+#-------------------------------------------------------
+EOF
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Empty the Nginx config file
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo cat /dev/null > /etc/nginx/sites-available/default
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 -   We then specify Nginx load balancer and error handling configuration
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 > sudo cat << EOF | tee -a /etc/nginx/sites-available/default
 
-##--------/etc/nginx/sites-available/default------------
-# Default server configuration
-#
-# Default server configuration
-#
-upstream keymicobank {
-        #after 3 fails, take out the server for an hoiur
-        server host1:18080 max_fails=3 fail_timeout=3600s; 
-        server host2:18080 max_fails=3 fail_timeout=3600s;
-        server host3:18080 max_fails=3 fail_timeout=3600s;
-}
+  
+##--------/etc/nginx/sites-available/default------------  
+# Default server configuration  
+#  
+# Default server configuration  
+#  
+upstream keymicobank {  
+        #after 3 fails, take out the server for an hoiur  
+        server host1:18080 max_fails=3 fail_timeout=3600s;   
+        server host2:18080 max_fails=3 fail_timeout=3600s;  
+        server host3:18080 max_fails=3 fail_timeout=3600s;  
+}  
+  
+upstream keycloak {  
+        #after 3 fails, take out the server for an hoiur  
+        server host1:9443 max_fails=3 fail_timeout=3600s;   
+        server host2:9443 max_fails=3 fail_timeout=3600s;  
+        server host3:9443 max_fails=3 fail_timeout=3600s;  
+}  
+server {  
+#       listen 80 default_server;  
+#       listen [::]:80 default_server;  
+  
+        # SSL configuration  
+        #  
+        listen 9443 ssl default_server;  
+        listen [::]:9443 ssl default_server;  
+        include snippets/self-signed.conf;  
+        include snippets/ssl-params.conf;  
+  
+        #root /var/www/html;  
+  
+        # Add index.php to the list if you are using PHP  
+        #index index.html index.htm index.nginx-debian.html;  
+  
+        server_name _;  
+  
+  
+        #if there is auth in the URL, it must be Keycloak - so send it there  
+        location  / {
+		proxy_set_header Host $host:$server_port;  
+                proxy_pass https://keycloak;  
+        } 
 
-upstream keycloak {
-        #after 3 fails, take out the server for an hoiur
-        server host1:9443 max_fails=3 fail_timeout=3600s; 
-        server host2:9443 max_fails=3 fail_timeout=3600s;
-        server host3:9443 max_fails=3 fail_timeout=3600s;
-}
+} 
+
 server {
-#       listen 80 default_server;
-#       listen [::]:80 default_server;
+#       listen 80 default_server;  
+#       listen [::]:80 default_server;  
 
-        # SSL configuration
-        #
+        # SSL configuration  
+        #  
         listen 8443 ssl default_server;
         listen [::]:8443 ssl default_server;
         include snippets/self-signed.conf;
         include snippets/ssl-params.conf;
 
-        root /var/www/html;
+        #root /var/www/html;  
 
-        # Add index.php to the list if you are using PHP
-        index index.html index.htm index.nginx-debian.html;
+        # Add index.php to the list if you are using PHP  
+        #index index.html index.htm index.nginx-debian.html;  
 
-        server_name _;
+        server_name _;  
 
-        location / { 
-                # First attempt to serve request as file, then
-                # as directory, then fall back to displaying a 404.
+
+
+        location / {
                 proxy_pass http://keymicobank;
         }
-
-        #if there is auth in the URL, it must be Keycloak - so send it there
-        location ^~ /auth/  { 
-                # First attempt to serve request as file, then
-                # as directory, then fall back to displaying a 404.
-                proxy_pass https://keycloak;
-        }
-}
+}  
 #-------------------------------------------------------
 EOF
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
