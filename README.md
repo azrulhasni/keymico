@@ -743,7 +743,7 @@ Let us install the JDK
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> sudo keytool -noprompt -import -file "/tmp/cockroach.localhost.cer" -keystore "$CACERTS_LOC" -alias "cockroachdb" -storepass  changeit
+> sudo keytool -noprompt -import -file "/tmp/cockroach.$HOST.cer" -keystore "$CACERTS_LOC" -alias "cockroachdb" -storepass  changeit
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -   The default cacerts password is “change” as used above. Do change it if you

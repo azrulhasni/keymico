@@ -481,6 +481,7 @@ export CACERTS_LOC=/usr/lib/jvm/java-11-openjdk-amd64/lib/security/cacerts
 sudo keytool -noprompt -import -file "cockroach.host1.cer" -keystore "$CACERTS_LOC" -alias "cockroach.host1" -storepass  changeit
 sudo keytool -noprompt -import -file "cockroach.host2.cer" -keystore "$CACERTS_LOC" -alias "cockroach.host2" -storepass  changeit
 sudo keytool -noprompt -import -file "cockroach.host3.cer" -keystore "$CACERTS_LOC" -alias "cockroach.host3" -storepass  changeit
+
 sudo keytool -noprompt -import -file "minio.host1.cer" -keystore "$CACERTS_LOC" -alias "minio.host1" -storepass  changeit
 sudo keytool -noprompt -import -file "minio.host2.cer" -keystore "$CACERTS_LOC" -alias "minio.host2" -storepass  changeit
 sudo keytool -noprompt -import -file "minio.host3.cer" -keystore "$CACERTS_LOC" -alias "minio.host3" -storepass  changeit

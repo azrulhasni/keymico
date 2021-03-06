@@ -33,7 +33,7 @@ spring:
       enabled: false
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:postgresql://host1:26257/banking?sslmode=verify-full&sslrootcert=/Users/azrul/Documents/GitHub/keymico/setupfiles/ca.crt
+    url: jdbc:postgresql://host1:26257/banking?sslmode=verify-full&sslrootcert=/home/cockroach/certs/ca.crt
     username: banking
     password: 1qazZAQ!
     hikari:
@@ -113,10 +113,11 @@ jhipster:
 # More documentation is available at:
 # https://www.jhipster.tech/common-application-properties/
 # ===================================================================
+
+# application:
 minio:
     server:
-        url: https://localhost:9000
+        url: https://host1:9000
         credential: mystoreuser
         password: 1qazZAQ!
         bucket: myuploads
-# application:

@@ -120,7 +120,7 @@ spring:
         registration:
           oidc:
             client-id: bankingclient
-            client-secret: b279d7ca-18b7-4b98-9bc4-1d1605649e74
+            client-secret: 46b52fe2-03c1-423d-a9fc-027239483da9
 
 server:
   servlet:
@@ -176,10 +176,5 @@ jhipster:
 # More documentation is available at:
 # https://www.jhipster.tech/common-application-properties/
 # ===================================================================
-minio:
-    server:
-        url: https://localhost:9000
-        credential: mystoreuser
-        password: 1qazZAQ!
-        bucket: myuploads
+
 # application:

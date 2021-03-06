@@ -89,8 +89,8 @@ export POSTGRESQL_JDBC_DOWNLOAD_URL=https://jdbc.postgresql.org/download/postgre
 export POSTGRESQL_JDBC_JAR=postgresql-42.2.18.jar
 export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host1:26257\/keycloakdb?sslmode=verify-full\&amp;sslrootcert=\/home\/cockroach\/certs\/ca\.crt' #!!!-this url must be escaped - use https://dwaves.de/tools/escape/
 
-
-
+export BANKING_APP_PROD_CONFIG_FILENAME=application-prod.host1.yml
+export CACERTS_LOC=/usr/lib/jvm/java-11-openjdk-amd64/lib/security/cacerts
 
 
 #=====================COCKROACH DB===============
@@ -430,5 +430,45 @@ systemctl status keycloak
 
 #-------------------APPLICATION ----------------------------------------------
 
-export CACERTS_LOC=/usr/lib/jvm/java-11-openjdk-amd64/lib/security/cacerts
+ useradd -m -p $(openssl passwd -crypt "1qazZAQ!") banking -s /bin/bash
+usermod -aG sudo banking
 
+
+#--add minio cert to cacerts
+openssl s_client -connect $HOST:9000 </dev/null | sudo sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /tmp/minio.localhost.cer
+keytool -noprompt -import -file "/tmp/minio.localhost.cer" -keystore "$CACERTS_LOC" -alias "minio" -storepass  changeit
+
+#--add keycloak cert to cacerts
+openssl s_client -connect $HOST:9443 </dev/null | sudo sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /tmp/keycloak.localhost.cer
+keytool -noprompt -import -file "/tmp/keycloak.localhost.cer" -keystore "$CACERTS_LOC" -alias "keycloak" -storepass  changeit
+
+mkdir /opt/banking/
+cp $CURRENT_WORKING_DIR/keymicobank-0.0.1-SNAPSHOT.jar /opt/banking/
+
+mkdir /opt/banking/config
+cp $CURRENT_WORKING_DIR/$BANKING_APP_PROD_CONFIG_FILENAME /opt/banking/config
+mv /opt/banking/config/$BANKING_APP_PROD_CONFIG_FILENAME  /opt/banking/config/application-prod.yml
+cp $CURRENT_WORKING_DIR/application.yml /opt/banking/config
+
+cat > /etc/systemd/system/banking.service <<EOF
+
+[Unit]
+Description=BankingApp
+After=network.target
+
+[Service]
+Type=idle
+User=banking
+Group=banking
+ExecStart=java -jar /opt/banking/keymicobank-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod --spring.config.name=application,application-prod --spring.config.location=file:///opt/banking/config/
+TimeoutStartSec=600
+TimeoutStopSec=600
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable banking
+systemctl start banking
+systemctl status banking

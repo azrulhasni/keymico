@@ -22,13 +22,23 @@ cockroach start \
 --http-addr=localhost:8082 \
 --join=localhost:26257,localhost:26258,localhost:26259 --background
 
-export CACERTS_LOC=/Library/Java/JavaVirtualMachines/jdk-14.0.2.jdk/Contents/Home/lib/cacerts
+export CACERTS_LOC=/Library/Java/JavaVirtualMachines/jdk-14.0.2.jdk/Contents/Home/lib/security/cacerts
 sudo  openssl s_client -servername NAME -connect localhost:26258 |  sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo keytool -noprompt -import -file "cockroach.host1.cer" -keystore "$CACERTS_LOC" -alias "cockroachdb" -storepass  changeit
 
+export CACERTS_LOC=/Library/Java/JavaVirtualMachines/jdk-14.0.2.jdk/Contents/Home/lib/security/cacerts
+sudo  openssl s_client -servername NAME -connect keycloak:9443 |  sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo keytool -noprompt -import -file "keycloak.host1.cer" -keystore "$CACERTS_LOC" -alias "cockroachdb" -storepass  changeit
 
-sudo openssl s_client -connect localhost:26258 </dev/null \
-    | sudo sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /tmp/cockroach.localhost.cer
-sudo keytool -noprompt -import -file "/tmp/cockroach.localhost.cer" -keystore "$CACERTS_LOC" -alias "cockroachdb" -storepass  changeit
+
+export CACERTS_LOC=/Library/Java/JavaVirtualMachines/jdk-14.0.2.jdk/Contents/Home/lib/security/cacerts
+                   /Library/Java/JavaVirtualMachines/jdk-14.0.2.jdk/Contents/Home
+sudo openssl s_client -connect keycloak:9443 </dev/null \
+    | sudo sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /tmp/keycloak.keycloak.cer
+sudo keytool -noprompt -import -file "/tmp/keycloak.keycloak.cer" -keystore "$CACERTS_LOC" -alias "keycloak" -storepass  changeit
+
+
+sudo openssl s_client -connect host1:9000 </dev/null \
+    | sudo sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /tmp/minio.host1.cer
+sudo keytool -noprompt -import -file "/tmp/minio.host1.cer" -keystore "$CACERTS_LOC" -alias "minio" -storepass  changeit
 
 
 sudo cat << EOF | tee -a /usr/local/etc/nginx/sites-available/default  
