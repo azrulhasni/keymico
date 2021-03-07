@@ -1,1 +1,0 @@
-/Users/azrul/Documents/GitHub/keymico/cockroachdb/host1/node2/cockroach-temp597294668
