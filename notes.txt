@@ -1,3 +1,17 @@
+Check point for perf testing
+============================
+1) Delete all current data (optional)
+    Minio> mc rm -r --insecure --force --dangerous mystore/myuploads
+    Cockroach> delete from public."transaction" 
+2) Make sure all services are up (especially host3 since we keep shutting it down)
+    Minio> mc --insecure admin info mystore
+    Cockroach> https://host1:8080/
+    Banking> systemctl status banking
+3) Rename current data in jmeter-server
+    
+- use 
+
+
 KeyMiCo
 
 https://www.examples.com/business/bank-statement.html
@@ -491,12 +505,15 @@ sudo keytool -noprompt -import -file "keycloak.host3.cer" -keystore "$CACERTS_LO
 
 nohup java -jar /opt/banking/keymicobank-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod --spring.config.name=application,application-prod --spring.config.location=file:///home/azrulhasni/config/ &
 
+
+mkdir /workingdir
+cd /workingdir
 wget https://downloads.apache.org//jmeter/binaries/apache-jmeter-5.4.1.tgz
 tar xvzf apache-jmeter-5.4.1.tgz
 mv apache-jmeter-5.4.1 jmeter
 cd jmeter/lib/ext
 wget https://jmeter-plugins.org/get/
-
+cd /workingdir
 jmeter/bin/jmeter -n  -t keymico.jmeter.jmx
 
 

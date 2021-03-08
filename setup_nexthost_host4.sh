@@ -33,8 +33,8 @@ export MINIO_SERVERS=https://host{1...4}/mnt/data{1...2}
 
 export DISK1=data1
 export DISK2=data2
-export DISK1_NAME=/dev/disk/by-id/scsi-0DO_Volume_data41
-export DISK2_NAME=/dev/disk/by-id/scsi-0DO_Volume_data42
+export DISK1_NAME=/dev/disk/by-id/scsi-0DO_Volume_data4b1 
+export DISK2_NAME=/dev/disk/by-id/scsi-0DO_Volume_data4b2 
 
 export MINIO_PUBLIC_CERT=public4.crt
 export MINIO_PRIVATE_KEY=private4.key
