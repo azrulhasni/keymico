@@ -59,6 +59,7 @@ export KEYCLOAK_UNZIPED_DIR=keycloak-12.0.3
 export POSTGRESQL_JDBC_DOWNLOAD_URL=https://jdbc.postgresql.org/download/postgresql-42.2.19.jar
 export POSTGRESQL_JDBC_JAR=postgresql-42.2.18.jar
 export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host2:26257\/keycloakdb?sslmode=verify-full\&amp;sslrootcert=\/home\/cockroach\/certs\/ca\.crt'
+export KEYCLOAK_DBUSER_PASSWORD=1qazZAQ!
 
 #!!!-this url must be escaped - use https://dwaves.de/tools/escape/
 
@@ -247,8 +248,12 @@ mv /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.proto.xml /opt
 #--update standalone xml for jdbc url
 sed -i -e "s/YYY_JDBC_URL_YYY/$POSTGRESQL_JDBC_URL/g" /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
 
+#--update standalone xml for keycloak dbuser password
+sed -i -e "s/YYY_KEYCLOAK_DBUSER_PASSSWORD_YYY/$KEYCLOAK_DBUSER_PASSWORD/g" /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
+
 #--update standalone xml for self signed cert creation
 sed -i -e "s/<keystore path=\"application\.keystore\" relative-to=\"jboss\.server\.config\.dir\" keystore-password=\"password\" alias=\"server\" key-password=\"password\" generate-self-signed-certificate-host=\"localhost\"\/>/<keystore path=\"application\.keystore\" relative-to=\"jboss\.server\.config\.dir\" keystore-password=\"password\" alias=\"keycloak\" key-password=\"password\" generate-self-signed-certificate-host=\"keycloak\"\/>/g" /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
+
 
 
 

@@ -158,7 +158,7 @@
                   </pool>
                   <security>
                        <user-name>keycloak</user-name>
-                       <password>1qazZAQ!</password>
+                       <password>YYY_KEYCLOAK_DBUSER_PASSSWORD_YYY</password>
                   </security>
                </datasource>
 

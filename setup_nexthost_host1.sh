@@ -90,6 +90,7 @@ export KEYCLOAK_UNZIPED_DIR=keycloak-12.0.3
 export POSTGRESQL_JDBC_DOWNLOAD_URL=https://jdbc.postgresql.org/download/postgresql-42.2.19.jar
 export POSTGRESQL_JDBC_JAR=postgresql-42.2.18.jar
 export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host1:26257\/keycloakdb?sslmode=verify-full\&amp;sslrootcert=\/home\/cockroach\/certs\/ca\.crt' #!!!-this url must be escaped - use https://dwaves.de/tools/escape/
+export KEYCLOAK_DBUSER_PASSWORD=1qazZAQ!
 
 export BANKING_APP_PROD_CONFIG_FILENAME=application-prod.host1.yml
 export CACERTS_LOC=/usr/lib/jvm/java-11-openjdk-amd64/lib/security/cacerts
@@ -254,6 +255,15 @@ chmod +x /opt/minio-binaries/minio
 
 ln /opt/minio-binaries/minio /usr/local/bin/minio
 
+#--Create moun points for minio
+mkdir -p /mnt/$DISK1
+mount -o discard,defaults,noatime $DISK1_NAME /mnt/$DISK1
+echo "$DISK1_NAME /mnt/$DISK1 ext4 defaults,nofail,discard 0 0" | sudo tee -a /etc/fstab
+
+mkdir -p /mnt/$DISK2
+mount -o discard,defaults,noatime $DISK2_NAME /mnt/$DISK2
+echo "$DISK2_NAME /mnt/$DISK2 ext4 defaults,nofail,discard 0 0" | sudo tee -a /etc/fstab
+
 #--For disks----
 chown -R minio:minio /mnt/$DISK1
 chmod u+rxw /mnt/$DISK1
@@ -336,11 +346,14 @@ mc --insecure admin policy set $MINIO_ALIAS readwrite user=$MINIO_USERNAME
 #Also add a bucket
 mc --insecure mb $MINIO_ALIAS/$MINIO_BUCKET
 
-#-------------------KEYCLOAK------------------------------------------
+#===================KEYCLOAK==============================================
 
 
  useradd -m -p $(openssl passwd -crypt "1qazZAQ!") keycloak -s /bin/bash
 usermod -aG sudo keycloak
+
+
+
 
 
 mkdir /opt/$KEYCLOAK_UNZIPED_DIR
@@ -361,11 +374,13 @@ mv /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.proto.xml /opt
 #--update standalone xml for jdbc url
 sed -i -e "s/YYY_JDBC_URL_YYY/$POSTGRESQL_JDBC_URL/g" /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
 
+#--update standalone xml for keycloak dbuser password
+sed -i -e "s/YYY_KEYCLOAK_DBUSER_PASSSWORD_YYY/$KEYCLOAK_DBUSER_PASSWORD/g" /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
+
+
+
 #--update standalone xml for self signed cert creation
 sed -i -e "s/<keystore path=\"application\.keystore\" relative-to=\"jboss\.server\.config\.dir\" keystore-password=\"password\" alias=\"server\" key-password=\"password\" generate-self-signed-certificate-host=\"localhost\"\/>/<keystore path=\"application\.keystore\" relative-to=\"jboss\.server\.config\.dir\" keystore-password=\"password\" alias=\"keycloak\" key-password=\"password\" generate-self-signed-certificate-host=\"keycloak\"\/>/g" /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
-
-
-
 
 mkdir -p /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql/main
 cp $CURRENT_WORKING_DIR/$POSTGRESQL_JDBC_JAR /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql/main

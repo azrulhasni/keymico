@@ -113,10 +113,5 @@ jhipster:
 # More documentation is available at:
 # https://www.jhipster.tech/common-application-properties/
 # ===================================================================
-minio:
-    server:
-        url: https://localhost:9000
-        credential: mystoreuser
-        password: 1qazZAQ!
-        bucket: myuploads
+
 # application:

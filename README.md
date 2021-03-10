@@ -522,6 +522,9 @@ export POSTGRESQL_JDBC_JAR=postgresql-42.2.18.jar
 #- - JDBC URL (this url must be escaped - use https://dwaves.de/tools/escape/)
 export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host1:26257\/keycloakdb?sslmode=verify-full\&amp;sslrootcert=\/home\/cockroach\/certs\/ca\.crt'
 
+#-- Keylocak database user password
+export KEYCLOAK_DBUSER_PASSWORD=1qazZAQ!<some password>
+
 
 
 #—————APPLICATION ENVIRONMENT VARIABLES FOR HOST1---------------------------
@@ -590,7 +593,7 @@ export KEYCLOAK_UNZIPED_DIR=keycloak-12.0.3
 export POSTGRESQL_JDBC_DOWNLOAD_URL=https://jdbc.postgresql.org/download/postgresql-42.2.19.jar
 export POSTGRESQL_JDBC_JAR=postgresql-42.2.18.jar
 export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host2:26257\/keycloakdb?sslmode=verify-full\&amp;sslrootcert=\/home\/cockroach\/certs\/ca\.crt'
-
+export KEYCLOAK_DBUSER_PASSWORD=<some password>
 
 #—————APPLICATION ENVIRONMENT VARIABLES FOR HOST2---------------------------
 #---------------------------------------------------------------------------
@@ -651,6 +654,7 @@ export KEYCLOAK_UNZIPED_DIR=keycloak-12.0.3
 export POSTGRESQL_JDBC_DOWNLOAD_URL=https://jdbc.postgresql.org/download/postgresql-42.2.19.jar
 export POSTGRESQL_JDBC_JAR=postgresql-42.2.18.jar
 export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host3:26257\/keycloakdb?sslmode=verify-full\&amp;sslrootcert=\/home\/cockroach\/certs\/ca\.crt'
+export KEYCLOAK_DBUSER_PASSWORD=<some password>
 
 #—————APPLICATION ENVIRONMENT VARIABLES FOR HOST3---------------------------
 #---------------------------------------------------------------------------
@@ -697,8 +701,7 @@ export OTHER_MINIO_PUBLIC_CERT3=public3.crt
 CockroachDB setup
 -----------------
 
-The following instructions is only for Host1. Make sure you have created the
-appropriate users
+ 
 
  
 
@@ -724,7 +727,8 @@ appropriate users
 
 -   SSH to Host1
 
--   Setup the environment variables as per the paragraph above for Host1
+-   Make sure we have created the appropriate users  and we have setup the
+    environment variables as per the paragraph above for Host1
 
 -   Download CockroachDB
 
@@ -978,6 +982,8 @@ EOF
 -   Firstly, do ensure that CockroachDB is running without error in Host1, Host2
     and Host3
 
+-   SSH to Host1
+
 -   Create a client certificate for the root user
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1001,39 +1007,13 @@ EOF
 Cluster successfully initialized
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   Next we are going to create users and databases. We would need 4 files
-
-1.  Users (`keycloak `and `banking`) and database (`keycloakdb` and `banking`)
-    creation script. **Make sure we change the passwords in this file
+-   Next, we need to create database users and the actual databases. Download
+    the users (`keycloak `and `banking`) and database (`keycloakdb` and
+    `banking`) creation script into \$CURRENT_WORKING_DIR of Host1. **Make sure
+    we change the passwords in this file to the same as
+    \$KEYCLOAK_DBUSER_PASSWORD. **Note the new password we set up for both
+    keycloak and banking users.**
     **<https://github.com/azrulhasni/keymico/blob/main/keycloak/keycloak_create_user_db.sql>
-
-2.  Keycloak table creation script
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-cockroach --certs-dir=/home/cockroach/certs --host=$HOST sql < $CURRENT_WORKING_DIR/keycloak_create_user_db.sql
-cockroach --certs-dir=/home/cockroach/certs --database=keycloakdb --host=$HOST sql < $CURRENT_WORKING_DIR/keycloak_create_no_constraints.sql
-cockroach --certs-dir=/home/cockroach/certs --database=keycloakdb --host=$HOST sql < $CURRENT_WORKING_DIR/keycloak_data.sql
-cockroach --certs-dir=/home/cockroach/certs --database=keycloakdb --host=$HOST sql < $CURRENT_WORKING_DIR/keycloak_add_constraints.sql
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
--    
-
--    
-
--    
-
--   Installing JDK
-
-Let us install the JDK
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> sudo apt-get update
-> sudo apt-get install openjdk-11-jdk
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
- 
-
-### Keycloak database setup
 
 -   Recall our architecture where Keycloak will use CockroachDB as a database.
     CockroachDB is PostgreSQL compatible so, in theory , this should not be a
@@ -1047,52 +1027,36 @@ Let us install the JDK
     structure and preliminary data of Keycloak out. We then load these exported
     structure and data to CockroachDB.
 
--   Download the 3 SQL files to
-    Host1:<https://github.com/azrulhasni/keymico/blob/main/keycloak/keycloak_create_no_constraints.sql>
+-   We already did this for this tutorial and we created 3 files to represent
+    this. Download these 3 files into \$CURRENT_WORKING_DIR of Host1
 
+1.  Keycloak table creation script
+    <https://github.com/azrulhasni/keymico/blob/main/keycloak/keycloak_create_no_constraints.sql>
+
+2.  Keycloak data loading script
     <https://github.com/azrulhasni/keymico/blob/main/keycloak/keycloak_data.sql>
 
-    <https://github.com/azrulhasni/keymico/blob/main/keycloak/keycloak_add_constraints.sql>
-
--   Load Keycloak tables and data to CockroachDB. Note: it is important to load
-    CockroachDB is the order of 1) tables 2) data 3) constraints
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> cockroach sql --database=keycloakdb < keycloak_create_no_constraints.sql
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> cockroach sql --database=keycloakdb < keycloak_data.sql
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> cockroach sql --database=keycloakdb < keycloak_add_constraints.sql
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3.  Keycloak constraint setup
+    <https://github.com/azrulhasni/keymico/blob/main/keycloak/keycloak_create_no_constraints.sql>
 
  
 
-### Add Keycloak database certificate to JVM
-
--   Keycloak will need to call CockroachDB. Unfortunately, we CockroachDB is
-    protected by a self-signed TLS. Because of this, we need to import
-    CockroachDB certificate to our JVM keystore (cacerts) so that Keycloak
-    (which runs on said JVM) will recognise the self-signed certificate used by
+-   Run the command below to create users and load Keycloak data into
     CockroachDB
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> export CACERTS_LOC=/usr/lib/jvm/java-11-openjdk-amd64/lib/security/cacerts
+> cockroach --certs-dir=/home/cockroach/certs --host=$HOST sql < $CURRENT_WORKING_DIR/keycloak_create_user_db.sql
+> cockroach --certs-dir=/home/cockroach/certs --database=keycloakdb --host=$HOST sql < $CURRENT_WORKING_DIR/keycloak_create_no_constraints.sql
+> cockroach --certs-dir=/home/cockroach/certs --database=keycloakdb --host=$HOST sql < $CURRENT_WORKING_DIR/keycloak_data.sql
+> cockroach --certs-dir=/home/cockroach/certs --database=keycloakdb --host=$HOST sql < $CURRENT_WORKING_DIR/keycloak_add_constraints.sql
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> sudo openssl s_client -connect $HOST:26257 </dev/null     | sudo sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /tmp/cockroach.$HOST.cer
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-   Congratulations! You have setup a clustered and secure CockroachDB
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> sudo keytool -noprompt -import -file "/tmp/cockroach.$HOST.cer" -keystore "$CACERTS_LOC" -alias "cockroachdb" -storepass  changeit
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 
 
--   The default cacerts password is “change” as used above. Do change it if you
-    are using some other password
+Keycloak Setup
+--------------
 
  
 
@@ -1146,11 +1110,30 @@ rather).
 
  
 
-### Setting up Keycloak
+### Installing JDK to Host1, Host2 and Host3
 
--   Now we are ready to setup Keycloak
+-   SSH into Host1 and install the JDK
 
--   First, let us download it
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo apt-get update
+> sudo apt-get install openjdk-11-jdk
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Repeat this for Host2 and Host3
+
+ 
+
+ 
+
+### Setting up Keycloak in Host1, Host2 and Host3
+
+-   Now we are ready to setup Keycloak.
+
+-   SSH to Host1
+
+-   Make sure that the users and environment variables are properly set up
+
+-   First, let us download Keycloak
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 > sudo mkdir /opt/$KEYCLOAK_UNZIPED_DIR
@@ -1162,33 +1145,38 @@ rather).
 -   Next, let us download PostgreSQL JDBC jar file
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> sudo wget -c $POSTGRESQL_JDBC_DOWNLOAD_URL -O - | tar -xzv --strip-components=1 -C $CURRENT_WORKING_DIR
+> sudo curl $POSTGRESQL_JDBC_DOWNLOAD_URL \
+  --create-dirs \
+  -o $CURRENT_WORKING_DIR/$POSTGRESQL_JDBC_JAR
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -   Let us put in the needed configuration. To help with this, we prepared a
     template file
-
--   <https://github.com/azrulhasni/keymico/blob/main/keycloak/standalone.proto.xml>.
+    <https://github.com/azrulhasni/keymico/blob/main/setupfiles/standalone.proto.xml>.
     Download the file and place it in \$CURRENT_WORKING_DIR
 
 -   Run the command below to setup this configuration
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-sudo cp $CURRENT_WORKING_DIR/standalone.proto.xml /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration
-sudo rm /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
-sudo mv /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.proto.xml /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
+#--copy proto standalone xml to standalone xml
+cp $CURRENT_WORKING_DIR/standalone.proto.xml /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration
+rm /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
+mv /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.proto.xml /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
 
 #--update standalone xml for jdbc url
-sudo sed -i -e "s/YYY_JDBC_URL_YYY/$POSTGRESQL_JDBC_URL/g" /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
+sed -i -e "s/YYY_JDBC_URL_YYY/$POSTGRESQL_JDBC_URL/g" /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
+
+#--update standalone xml for keycloak dbuser password
+sed -i -e "s/YYY_KEYCLOAK_DBUSER_PASSSWORD_YYY/$KEYCLOAK_DBUSER_PASSWORD/g" /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
 
 #--update standalone xml for self signed cert creation
-sudo sed -i -e "s/<keystore path=\"application\.keystore\" relative-to=\"jboss\.server\.config\.dir\" keystore-password=\"password\" alias=\"server\" key-password=\"password\" generate-self-signed-certificate-host=\"localhost\"\/>/<keystore path=\"application\.keystore\" relative-to=\"jboss\.server\.config\.dir\" keystore-password=\"password\" alias=\"keycloak\" key-password=\"password\" generate-self-signed-certificate-host=\"keycloak\"\/>/g" /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
+sed -i -e "s/<keystore path=\"application\.keystore\" relative-to=\"jboss\.server\.config\.dir\" keystore-password=\"password\" alias=\"server\" key-password=\"password\" generate-self-signed-certificate-host=\"localhost\"\/>/<keystore path=\"application\.keystore\" relative-to=\"jboss\.server\.config\.dir\" keystore-password=\"password\" alias=\"keycloak\" key-password=\"password\" generate-self-signed-certificate-host=\"keycloak\"\/>/g" /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
 
-sudo mkdir -p /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql/main
-sudo cp $CURRENT_WORKING_DIR/$POSTGRESQL_JDBC_JAR /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql/main
+mkdir -p /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql/main
+cp $CURRENT_WORKING_DIR/$POSTGRESQL_JDBC_JAR /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql/main
 
 #----put JDBC jar in Keycloak
-sudo cat << EOF | tee -a /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql/main/module.xml
+cat << EOF | tee -a /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql/main/module.xml
 <?xml version="1.0" ?>
 <module xmlns="urn:jboss:module:1.3" name="org.postgresql">
 
@@ -1203,7 +1191,7 @@ sudo cat << EOF | tee -a /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keyclo
 </module>
 EOF
 
-sudo chown -R keycloak:keycloak /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql
+chown -R keycloak:keycloak /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -   The command above will do a few things, firstly it will update the JDBC URL
@@ -1219,12 +1207,14 @@ sudo chown -R keycloak:keycloak /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers
 -   Thirdly, it will copy our JDBC jar file downloaded above to Keycloak and
     update Keycloak’s database configuration to use said JDBC jar
 
+-   Repeat the same procedures in Host2 and Host3
+
  
 
-### Add service to systemd and start Keycloak
+### Add service to systemd and start Keycloak in Host1 , Host2 and Host3
 
-We want to easily start and stop Keycloak. So, we create a service in systemd
-for that
+-   We want to easily start and stop Keycloak. So, we create a service in
+    systemd for that
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #----declare Keycloak in systemd-------------
@@ -1253,15 +1243,19 @@ sudo systemctl start keycloak
 sudo systemctl status keycloak
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If all goes well, Keycloak will be started and we can use it right away.
+-   If all goes well, Keycloak will be started and we can use it right away.
+
+-   Repeat the same procedures in Host2 and Host3
 
  
 
-### Setting up Keycloak realm, client and user
+### Setting up Keycloak realm, client and user - only in Host1
 
--   Access Keycloak’s administrator portal at https://host4:9443/auth. If you
+-   The procedure below need to be done only in one host. Let us use Host1
+
+-   Access Keycloak’s administrator portal at https://host1:9443/auth. If you
     used the sql files we provided above the administrator login is admin with
-    password abbc123. We advise that you change the password immediately.
+    password abc123. We advise that you change the password immediately.
 
 -   To add a realm, under Master realm, click ‘Add Realm’. Then create a realm
     called ‘banking’. Click ‘Create’ - and we are done. Keycloak will bring us
@@ -1287,8 +1281,8 @@ If all goes well, Keycloak will be started and we can use it right away.
 ![](README.images/gLMHcW.jpg)
 
 -   Then click on Save button at the bottom of the page and navibgate back up,
-    and click on the Confidential tab. Note the client secret. We are now done
-    with setting up a Keycloak client
+    and click on the Confidential tab. Note the **client secret**. We are now
+    done with setting up a Keycloak client
 
 ![](README.images/sklHAS.jpg)
 
@@ -1310,9 +1304,23 @@ If all goes well, Keycloak will be started and we can use it right away.
 
 -   We are now done with creating a user
 
+-   Congratulation. Our Keycloak is now properly set up.
+
  
 
-### Setting up Minio
+ 
+
+Setting up Minio
+----------------
+
+ 
+
+### Setting up Minio for Host1
+
+-   SSH to Host1
+
+-   Make sure we have created the appropriate users  and we have setup the
+    environment variables as per the paragraph above for Host1
 
 -   We will use a go script to create self-signed certificate for Minio.
     Firstly, let us install Go
@@ -1322,16 +1330,17 @@ If all goes well, Keycloak will be started and we can use it right away.
 > sudo apt-get install golang
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
- 
-
 -   Next, we would like to create a bunch of self-signed certificate for all 4
     minio hosts
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 > sudo mkdir -p /home/minio/.minio/certs/CAs
 
+> sudo curl $GO_CERT_GENERATOR_URL \
+  --create-dirs \
+  -o /home/minio/generate_cert.go
 
-> sudo wget -c $GO_CERT_GENERATOR_URL -O - | tar -xzv --strip-components=1 -C /home/minio/ #Download the Go certificate generator
+> sudo cd /home/minio/
 
 > sudo go run generate_cert.go -ca --host "$HOST1"
 > sudo mv /home/minio/cert.pem /home/minio/.minio/certs/public.crt
@@ -1395,10 +1404,19 @@ If all goes well, Keycloak will be started and we can use it right away.
 
  
 
--   Set ownership of disks
+-   Mount disks and set ownership of disks
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #--For disks----
+#--Create mount points for minio
+> sudo mkdir -p /mnt/$DISK1
+> sudo mount -o discard,defaults,noatime $DISK1_NAME /mnt/$DISK1
+> sudo echo "$DISK1_NAME /mnt/$DISK1 ext4 defaults,nofail,discard 0 0" | sudo tee -a /etc/fstab
+
+> sudo mkdir -p /mnt/$DISK2
+> sudo mount -o discard,defaults,noatime $DISK2_NAME /mnt/$DISK2
+echo "$DISK2_NAME /mnt/$DISK2 ext4 defaults,nofail,discard 0 0" | sudo tee -a /etc/fstab
+
 > sudo chown -R minio:minio /mnt/$DISK1
 > sudo chmod u+rxw /mnt/$DISK1
 > sudo chown -R minio:minio /mnt/$DISK2
@@ -1407,7 +1425,9 @@ If all goes well, Keycloak will be started and we can use it right away.
 
  
 
--   Configure Minio’s default information
+-   Configure Minio’s default information (Minio’s server expression, username
+    and password) - **make sure the username and password is set up the same on
+    every hosts **
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #---MINIO default info
@@ -1469,392 +1489,37 @@ EOF
 > sudo systemctl status minio
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
- 
-
 -   if all goes well, Minio should be up and running
 
--   Next, we will need to download Minio Client and create a user. Run the
-    command:
+ 
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> sudo curl $MINIO_CLIENT_DOWNLOAD_URL \
-  --create-dirs \
-  -o /opt/minio-binaries/mc
+### Setting up Minio for Host2, Host3 and Host4
 
-> sudo chmod +x /opt/minio-binaries/mc
+-   SSH to Host2
 
-> sudo ln /opt/minio-binaries/mc /usr/local/bin/mc
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-   Make sure we have created the appropriate users  and we have setup the
+    environment variables as per the paragraph above for Host2
 
--   We then use Minio Client to create a user
+-   Make sure we have all the files created in Host1 transported to Host2, Host3
+    and Host4 under \$CURRENT_WORKING_DIR
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#---Create Minio user----------------------
+1.  \$CURRENT_WORKING_DIR/public1.crt
 
-> sudo mc --insecure alias set $MINIO_ALIAS https://$HOST:9000 $MINIO_ADMIN_USERNAME $MINIO_ADMIN_PASSWORD
+2.  \$CURRENT_WORKING_DIR/public2.crt
 
-#Alias mystore can be used to, say, add user
-> sudo mc --insecure admin user add $MINIO_ALIAS $MINIO_USERNAME $MINIO_PASSWORD
-> sudo mc --insecure admin policy set $MINIO_ALIAS readwrite user=$MINIO_USERNAME
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3.  \$CURRENT_WORKING_DIR/private2.key
 
--   Lastly, let us create a bucket for Minio
+4.  \$CURRENT_WORKING_DIR/public3.crt
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#Also add a bucket
-> sudo mc --insecure mb $MINIO_ALIAS/$MINIO_BUCKET
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5.  \$CURRENT_WORKING_DIR/private3.key
 
--    
+6.  \$CURRENT_WORKING_DIR/public4.crt
 
--   Congratulations! We have set up our first host.
+7.  \$CURRENT_WORKING_DIR/private4.key
 
  
 
-Getting our hands dirty - Host2, Host3 and Host4 setup
-------------------------------------------------------
-
- 
-
-### Setup files
-
-Recall that we created a few files in Host1 to be transferred to Host2 and
-Host3. Make sure they are transferred to \$CURRENT_WORKING_DIR of Host2 and
-Host3
-
-1.  ca.crt
-
-2.  node.host1.crt
-
-3.  node.host2.crt
-
-4.  node.host2.key
-
-5.  node.host3.crt
-
-6.  node.host3.key
-
-7.  private2.key
-
-8.  private3.key
-
-9.  private4.key
-
-10. public1.crt
-
-11. public2.crt
-
-12. public3.crt
-
-13. public4.crt
-
-14. standalone.proto.xml
-
- 
-
-For Host4, make sure we have the files below in /home/azrulhasni
-
-1.  private2.key
-
-2.  private3.key
-
-3.  private4.key
-
-4.  public1.crt
-
-5.  public2.crt
-
-6.  public3.crt
-
-7.  public4.crt
-
- 
-
- 
-
-### Environment variables for Host2
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-export CURRENT_WORKING_DIR=/home/azrulhasni
-
-export COCKROACH_DOWNLOAD_URL=https://binaries.cockroachdb.com/cockroach-v20.2.5.linux-amd64.tgz
-export COCKROACH_UNZIPED_DIR=cockroach-v20.2.5.linux-amd64
-export HOST=host2
-export OTHER_HOSTS=host1,host3
-
-export CA_CRT=ca.crt
-export NODE_CRT=node.host2.crt
-export NODE_KEY=node.host2.key
-
-
-export MINIO_DOWNLOAD_URL=https://dl.min.io/server/minio/release/linux-amd64/minio
-export MINIO_USERNAME=minio-admin
-export MINIO_PASSWORD=<minio admin password>
-export MINIO_SERVERS=https://host1/mnt/data11\ https://host1/mnt/data12\ https://host2/mnt/data21\ https://host2/mnt/data22\ https://host3/mnt/data31\ https://host3/mnt/data32\ https://host4/mnt/data41\ https://host4/mnt/data42 #spaces must be excaped
-
-export DISK1=data21
-export DISK2=data22
-export MINIO_PUBLIC_CERT=public2.crt
-export MINIO_PRIVATE_KEY=private2.key
-
-export OTHER_MINIO_PUBLIC_CERT1=public1.crt
-export OTHER_MINIO_PRIVATE_KEY1=private1.key
-
-export OTHER_MINIO_PUBLIC_CERT2=public3.crt
-export OTHER_MINIO_PRIVATE_KEY2=private3.key
-
-export OTHER_MINIO_PUBLIC_CERT3=public4.crt
-export OTHER_MINIO_PRIVATE_KEY3=private4.key
-
-
-export KEYCLOAK_URL=https://github.com/keycloak/keycloak/releases/download/12.0.3/keycloak-12.0.3.tar.gz
-export KEYCLOAK_UNZIPED_DIR=keycloak-12.0.3
-export POSTGRESQL_JDBC_DOWNLOAD_URL=https://jdbc.postgresql.org/download/postgresql-42.2.19.jar
-export POSTGRESQL_JDBC_JAR=postgresql-42.2.18.jar
-export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host2:26257\/keycloakdb'
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
- 
-
-### Environment variables for Host3
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-export CURRENT_WORKING_DIR=/home/azrulhasni
-
-export COCKROACH_DOWNLOAD_URL=https://binaries.cockroachdb.com/cockroach-v20.2.5.linux-amd64.tgz
-export COCKROACH_UNZIPED_DIR=cockroach-v20.2.5.linux-amd64
-export HOST=host3
-export OTHER_HOSTS=host1,host2
-
-export CA_CRT=ca.crt
-export NODE_CRT=node.host3.crt
-export NODE_KEY=node.host3.key
-
-
-export MINIO_DOWNLOAD_URL=https://dl.min.io/server/minio/release/linux-amd64/minio
-export MINIO_USERNAME=minio-admin
-export MINIO_PASSWORD=<minio admin password>
-export MINIO_SERVERS=https://host1/mnt/data11\ https://host1/mnt/data12\ https://host2/mnt/data21\ https://host2/mnt/data22\ https://host3/mnt/data31\ https://host3/mnt/data32\ https://host4/mnt/data41\ https://host4/mnt/data42 #spaces must be excaped
-
-export DISK1=data31
-export DISK2=data32
-export MINIO_PUBLIC_CERT=public3.crt
-export MINIO_PRIVATE_KEY=private3.key
-
-export OTHER_MINIO_PUBLIC_CERT1=public1.crt
-export OTHER_MINIO_PRIVATE_KEY1=private1.key
-
-export OTHER_MINIO_PUBLIC_CERT2=public2.crt
-export OTHER_MINIO_PRIVATE_KEY2=private2.key
-
-export OTHER_MINIO_PUBLIC_CERT3=public4.crt
-export OTHER_MINIO_PRIVATE_KEY3=private4.key
-
-
-export KEYCLOAK_URL=https://github.com/keycloak/keycloak/releases/download/12.0.3/keycloak-12.0.3.tar.gz
-export KEYCLOAK_UNZIPED_DIR=keycloak-12.0.3
-export POSTGRESQL_JDBC_DOWNLOAD_URL=https://jdbc.postgresql.org/download/postgresql-42.2.19.jar
-export POSTGRESQL_JDBC_JAR=postgresql-42.2.18.jar
-export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host3:26257\/keycloakdb'
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
- 
-
- 
-
-### Environment variables for Host4
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-export CURRENT_WORKING_DIR=/home/azrulhasni
-
-export HOST=host4
-
-
-export MINIO_DOWNLOAD_URL=https://dl.min.io/server/minio/release/linux-amd64/minio
-export MINIO_USERNAME=minio-admin
-export MINIO_PASSWORD=<minio admin password>
-export MINIO_SERVERS=https://host1/mnt/data11\ https://host1/mnt/data12\ https://host2/mnt/data21\ https://host2/mnt/data22\ https://host3/mnt/data31\ https://host3/mnt/data32\ https://host4/mnt/data41\ https://host4/mnt/data42 #spaces must be excaped
-
-export DISK1=data41
-export DISK2=data42
-export MINIO_PUBLIC_CERT=public4.crt
-export MINIO_PRIVATE_KEY=private4.key
-
-export OTHER_MINIO_PUBLIC_CERT1=public1.crt
-export OTHER_MINIO_PRIVATE_KEY1=private1.key
-
-export OTHER_MINIO_PUBLIC_CERT2=public2.crt
-export OTHER_MINIO_PRIVATE_KEY2=private2.key
-
-export OTHER_MINIO_PUBLIC_CERT3=public3.crt
-export OTHER_MINIO_PRIVATE_KEY3=private3.key
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
- 
-
-### Setup CockroachDB and Keycloak for each host: Host2 and Host3
-
--   Let us setup CockroachDB
-
--   Download CockroachDB
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#--download
-> sudo mkdir /opt/$COCKROACH_UNZIPED_DIR
-> sudo wget -c $COCKROACH_DOWNLOAD_URL -O - | tar -xzv --strip-components=1 -C /opt/$COCKROACH_UNZIPED_DIR
-> sudo ln /opt/$COCKROACH_UNZIPED_DIR/cockroach /usr/local/bin/cockroach
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
--   Copy certificates
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> sudo mkdir /home/cockroach/certs
-> sudo chown -R cockroach:cockroach /home/cockroach/certs
-
-> sudo cp $CURRENT_WORKING_DIR/$NODE_CRT /home/cockroach/certs
-> sudo mv /home/cockroach/certs/$NODE_CRT /home/cockroach/certs/node.crt
-
-> sudo cp $CURRENT_WORKING_DIR/$NODE_KEY /home/cockroach/certs
-> sudo mv /home/cockroach/certs/$NODE_KEY /home/cockroach/certs/node.key
-
-> sudo cp $CURRENT_WORKING_DIR/$CA_CRT /home/cockroach/certs/
-
-> sudo chmod 700 /home/cockroach/certs/node.crt
-> sudo chmod 700 /home/cockroach/certs/node.key
-> sudo chmod 700 /home/cockroach/certs/$CA_CRT
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
--   Setup systemd
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#--setup systemd
-> sudo cat << EOF | tee -a /etc/systemd/system/cockroach.service
-[Unit]
-Description=Cockroach Database cluster node
-Requires=network.target
-
-[Service]
-Type=simple
-WorkingDirectory=/home/cockroach
-ExecStartPre=/bin/sleep 30
-ExecStart=/usr/local/bin/cockroach start --certs-dir=/home/cockroach/certs --host=$HOST --http-host=$HOST --join=$HOST,$OTHER_HOSTS --cache=25% --max-sql-memory=25%
-ExecStop=/usr/local/bin/cockroach quit --certs-dir=/home/cockroach/certs --host=$HOST
-Restart=always
-RestartSec=10
-RestartPreventExitStatus=0
-StandardOutput=syslog
-StandardError=syslog
-SyslogIdentifier=cockroach
-User=cockroach
-
-[Install]
-WantedBy=default.target
-EOF
-
-> sudo systemctl daemon-reload
-> sudo systemctl enable cockroach
-> sudo systemctl start cockroach
-> sudo systemctl status cockroach
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
--   This should start CockroachDB
-
--   Next we will setup Keycloak
-
--   Download Keycloak and install
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> sudo mkdir /opt/$KEYCLOAK_UNZIPED_DIR
-> sudo wget -c $KEYCLOAK_URL -O - | tar -xzv --strip-components=1 -C /opt/$KEYCLOAK_UNZIPED_DIR
-
-> sudo chown -R keycloak:keycloak /opt/$KEYCLOAK_UNZIPED_DIR
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
--   Download JDBC and place it in /home/azrulhasni
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> sudo wget -c $POSTGRESQL_JDBC_DOWNLOAD_URL -O - | tar -xzv --strip-components=1 -C $CURRENT_WORKING_DIR
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
--   Copy the template configuration file into Keycloak and modify it accordingly
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#--copy proto standalone xml to standalone xml
-> sudo cp $CURRENT_WORKING_DIR/standalone.proto.xml /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration
-> sudo rm /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
-> sudo mv /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.proto.xml /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
-
-#--update standalone xml for jdbc url
-> sudo sed -i -e "s/YYY_JDBC_URL_YYY/$POSTGRESQL_JDBC_URL/g" /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
-
-#--update standalone xml for self signed cert creation
-> sudo sed -i -e "s/<keystore path=\"application\.keystore\" relative-to=\"jboss\.server\.config\.dir\" keystore-password=\"password\" alias=\"server\" key-password=\"password\" generate-self-signed-certificate-host=\"localhost\"\/>/<keystore path=\"application\.keystore\" relative-to=\"jboss\.server\.config\.dir\" keystore-password=\"password\" alias=\"keycloak\" key-password=\"password\" generate-self-signed-certificate-host=\"keycloak\"\/>/g" /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
-
-> sudo mkdir -p /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql/main
-> sudo cp $CURRENT_WORKING_DIR/$POSTGRESQL_JDBC_JAR /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql/main
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
--   Copy JDBC jar and configure Keycloak to use it
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#----put JDBC jar in Keycloak
-> sudo cat << EOF | tee -a /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql/main/module.xml
-<?xml version="1.0" ?>
-<module xmlns="urn:jboss:module:1.3" name="org.postgresql">
-
-    <resources>
-        <resource-root path="$POSTGRESQL_JDBC_JAR"/>
-    </resources>
-
-    <dependencies>
-        <module name="javax.api"/>
-        <module name="javax.transaction.api"/>
-    </dependencies>
-</module>
-EOF
-
-> sudo chown -R keycloak:keycloak /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
--   Declare Keycloak in systemd and start it
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#----declare Keycloak in systemd-------------
-> sudo cat > /etc/systemd/system/keycloak.service <<EOF
-
-[Unit]
-Description=Keycloak
-After=network.target
-
-[Service]
-Type=idle
-User=keycloak
-Group=keycloak
-ExecStart=/opt/$KEYCLOAK_UNZIPED_DIR/bin/standalone.sh -Djboss.socket.binding.port-offset=1000 -b=0.0.0.0
-TimeoutStartSec=600
-TimeoutStopSec=600
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-#---run keycloak in systemd------
-> sudo systemctl daemon-reload
-> sudo systemctl enable keycloak
-> sudo systemctl start keycloak
-> sudo systemctl status keycloak
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
--   Keycloak should now start
-
- 
-
-### Setup Minio for each host: Host2, Host3 and Host4
-
--   Lastly, we will setup Minio
-
--   We will copy Minio certificates from /home/azrulhasni to Minio certificate
-    folder
+-   Next we transfer the files above to its appropriate locations
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 > sudo mkdir -p /home/minio/.minio/certs/CAs
@@ -1869,42 +1534,55 @@ EOF
 > sudo chown -R minio:minio /home/minio/.minio
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   Download Minio and install
+-   Download Minio
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 > sudo curl $MINIO_DOWNLOAD_URL \
   --create-dirs \
   -o /opt/minio-binaries/minio
+
 > sudo chmod +x /opt/minio-binaries/minio
 
 > sudo ln /opt/minio-binaries/minio /usr/local/bin/minio
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   Change Minio disk ownership
+-   Mount disks and set their ownership
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- #--For disks----
+#--For disks----
+#--Create mount points for minio
+> sudo mkdir -p /mnt/$DISK1
+> sudo mount -o discard,defaults,noatime $DISK1_NAME /mnt/$DISK1
+> sudo echo "$DISK1_NAME /mnt/$DISK1 ext4 defaults,nofail,discard 0 0" | sudo tee -a /etc/fstab
+
+> sudo mkdir -p /mnt/$DISK2
+> sudo mount -o discard,defaults,noatime $DISK2_NAME /mnt/$DISK2
+echo "$DISK2_NAME /mnt/$DISK2 ext4 defaults,nofail,discard 0 0" | sudo tee -a /etc/fstab
+
 > sudo chown -R minio:minio /mnt/$DISK1
 > sudo chmod u+rxw /mnt/$DISK1
 > sudo chown -R minio:minio /mnt/$DISK2
 > sudo chmod u+rxw /mnt/$DISK2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   Setup Minio default configuration
+-   Configure Minio’s default information (Minio’s server expression, username
+    and password) - **make sure the username and password is set up the same on
+    every hosts **
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> sudo cat << EOF | tee -a  /etc/default/minio
+> #---MINIO default info
+sudo cat << EOF | tee -a  /etc/default/minio
 MINIO_ACCESS_KEY=$MINIO_USERNAME
 MINIO_SECRET_KEY=$MINIO_PASSWORD
 MINIO_VOLUMES=$MINIO_SERVERS
 EOF
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   Setup Minio as systemd service and start it up
+-   Lastly, we will set up a systemd service for Minio and we will run it
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #-----Systemd config
-> sudo cat << EOF | tee -a /etc/systemd/system/minio.service
+sudo cat << EOF | tee -a /etc/systemd/system/minio.service
 [Unit]
 Description=MinIO
 Documentation=https://docs.min.io
@@ -1942,21 +1620,70 @@ WantedBy=multi-user.target
 EOF
 
 #---Run-------------
-> sudo systemctl daemon-reload
-> sudo systemctl enable minio
-> sudo systemctl start minio
-> sudo systemctl status minio
+sudo systemctl daemon-reload
+sudo systemctl enable minio
+sudo systemctl start minio
+sudo systemctl status minio
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   By this stage we should have Minio starting up
+-   Now, let us repeat the same procedure to Host3 and Host4
+
+ 
+
+### Completing Minio setup back in Host1
+
+-   SSH to Host1
+
+-   Next, we will need to download Minio Client and create a user. Run the
+    command:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo curl $MINIO_CLIENT_DOWNLOAD_URL \
+  --create-dirs \
+  -o /opt/minio-binaries/mc
+
+> sudo chmod +x /opt/minio-binaries/mc
+
+> sudo ln /opt/minio-binaries/mc /usr/local/bin/mc
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   We then use Minio Client to create a user
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#---Create Minio user----------------------
+
+#Firstly create an alias representinmg our entire Minio storage systems
+> sudo mc --insecure alias set $MINIO_ALIAS https://$HOST:9000 $MINIO_ADMIN_USERNAME $MINIO_ADMIN_PASSWORD
+
+#Alias mystore can be used to, say, add user
+> sudo mc --insecure admin user add $MINIO_ALIAS $MINIO_USERNAME $MINIO_PASSWORD
+> sudo mc --insecure admin policy set $MINIO_ALIAS readwrite user=$MINIO_USERNAME
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Lastly, let us create a bucket for Minio
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#Also add a bucket
+> sudo mc --insecure mb $MINIO_ALIAS/$MINIO_BUCKET
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Congratulations! We have set up Minio
+
+ 
+
+Setting up Nginx
+----------------
 
  
 
 ### Setup Nginx in Host5
 
+-   SSH to Host5
+
 -   Install Nginx
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo apt update
 > sudo apt install nginx
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -2020,83 +1747,61 @@ EOF
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 > sudo cat << EOF | tee -a /etc/nginx/sites-available/default
-
   
 ##--------/etc/nginx/sites-available/default------------  
 # Default server configuration  
 #  
 # Default server configuration  
 #  
-upstream keymicobank {  
-        #after 3 fails, take out the server for an hoiur  
-        server host1:18080 max_fails=3 fail_timeout=3600s;   
-        server host2:18080 max_fails=3 fail_timeout=3600s;  
-        server host3:18080 max_fails=3 fail_timeout=3600s;  
-}  
+upstream keymicobank {    
+        #after 3 fails, take out the server for an hoiur    
+        server host1:18080 max_fails=3 fail_timeout=3600s;     
+        server host2:18080 max_fails=3 fail_timeout=3600s;    
+        server host3:18080 max_fails=3 fail_timeout=3600s;    
+}
+upstream keycloak {    
+        #after 3 fails, take out the server for an hoiur    
+        server host1:9443 max_fails=3 fail_timeout=3600s;     
+        server host2:9443 max_fails=3 fail_timeout=3600s;    
+        server host3:9443 max_fails=3 fail_timeout=3600s;    
+}    
+server {        
+    
+        # SSL configuration    
+        #    
+        listen 9443 ssl default_server;    
+        listen [::]:9443 ssl default_server;    
+        include snippets/self-signed.conf;    
+        include snippets/ssl-params.conf;    
+
+        server_name _;    
+        location  / {  
+		proxy_set_header Host $host:$server_port;    
+                proxy_pass https://keycloak;    
+        }   
   
-upstream keycloak {  
-        #after 3 fails, take out the server for an hoiur  
-        server host1:9443 max_fails=3 fail_timeout=3600s;   
-        server host2:9443 max_fails=3 fail_timeout=3600s;  
-        server host3:9443 max_fails=3 fail_timeout=3600s;  
-}  
-server {  
-#       listen 80 default_server;  
-#       listen [::]:80 default_server;  
+}   
   
-        # SSL configuration  
-        #  
-        listen 9443 ssl default_server;  
-        listen [::]:9443 ssl default_server;  
+server {   
+  
+        # SSL configuration    
+        #    
+        listen 8443 ssl default_server;  
+        listen [::]:8443 ssl default_server;  
         include snippets/self-signed.conf;  
         include snippets/ssl-params.conf;  
-  
-        #root /var/www/html;  
-  
-        # Add index.php to the list if you are using PHP  
-        #index index.html index.htm index.nginx-debian.html;  
-  
-        server_name _;  
-  
-  
-        #if there is auth in the URL, it must be Keycloak - so send it there  
-        location  / {
-        proxy_set_header Host $host:$server_port;  
-                proxy_pass https://keycloak;  
-        } 
-
-} 
-
-server {
-#       listen 80 default_server;  
-#       listen [::]:80 default_server;  
-
-        # SSL configuration  
-        #  
-        listen 8443 ssl default_server;
-        listen [::]:8443 ssl default_server;
-        include snippets/self-signed.conf;
-        include snippets/ssl-params.conf;
-
-        #root /var/www/html;  
-
-        # Add index.php to the list if you are using PHP  
-        #index index.html index.htm index.nginx-debian.html;  
-
-        server_name _;  
-
-
-
-        location / {
-                proxy_pass http://keymicobank;
-        }
-}  
-#-------------------------------------------------------
+     
+        server_name _;
+        location / {  
+                proxy_pass http://keymicobank;  
+        }  
+}    
+#-------------------------------------------------------  
 EOF
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   We have 2 upstream blocks. These blocks are for our application (keymicobank
-    and Keycloak).
+-   We have 2 upstream blocks. These blocks are for our application and Keycloak
+    (keymicobank and Keycloak).
 
 -   Requests coming in will be round robbin to the underlying hosts. Fortunately
     for us, all the database and object store we used are sync. Therefore, one
@@ -2111,7 +1816,7 @@ EOF
 
     https://host5:8443/... -\> will go to the application (Keymicobank)
 
-    https://host5:8443/auth/... -\> will go to Keycloak
+    https://host5:9443/... -\> will go to Keycloak
 
 -   We have now completed the setup of Keymico! Congratulation!
 
@@ -2154,10 +1859,10 @@ will do. In short, we will create a transaction and will read it back.
  
 
 -   **Important note:** All the API calls from the client above go through a
-    load balancer. This means that, although we query data we just added, the
-    data creation and query will land on different servers. So, when we test our
-    application later, we will test the Keymico stack -\*\* and its data
-    replication capability\*\* at the same time
+    load balancer. This means that, although we query the exact data we just
+    add, the data creation and query will land on different servers. So, when we
+    test our application later, we will test the Keymico stack - **and its data
+    replication capability** at the same time
 
  
 
@@ -2218,8 +1923,6 @@ will do. In short, we will create a transaction and will read it back.
 
 ### Add add file manipulation logic
 
- 
-
 If you notice, we have a field called fileBinaries of type Blob in our data
 model. We will change JHipster code a little bit, instead of saving this field
 to the database, we will save it to Minio. During query, we will retrieve this
@@ -2256,8 +1959,66 @@ minio:
 
 -   Then, open the file
     \$BANKING/src/main/java/com/azrul/keymico/bank/service/TransactionService.java .
-    Modify save and findOne method as per below. Note we do not need any other
-    methods. If you do comment them out, make sure you comment out their
-    resources in
+    Modify save and findOne method as per below. [ Source code:
+    <https://github.com/azrulhasni/keymico/blob/main/banking/src/main/java/com/azrul/keymico/bank/service/TransactionService.java>
+    ]
+
+-   Note that we do not need any other methods. If we u do comment these other
+    methods out, make sure we comment out their resources in
+    [\$BANKING](https://github.com/azrulhasni/keymico/tree/main/banking)/[src](https://github.com/azrulhasni/keymico/tree/main/banking/src)/[main](https://github.com/azrulhasni/keymico/tree/main/banking/src/main)/[java](https://github.com/azrulhasni/keymico/tree/main/banking/src/main/java)/[com](https://github.com/azrulhasni/keymico/tree/main/banking/src/main/java/com)/[azrul](https://github.com/azrulhasni/keymico/tree/main/banking/src/main/java/com/azrul)/[keymico](https://github.com/azrulhasni/keymico/tree/main/banking/src/main/java/com/azrul/keymico)/[bank](https://github.com/azrulhasni/keymico/tree/main/banking/src/main/java/com/azrul/keymico/bank)/[web](https://github.com/azrulhasni/keymico/tree/main/banking/src/main/java/com/azrul/keymico/bank/web)/[rest](https://github.com/azrulhasni/keymico/tree/main/banking/src/main/java/com/azrul/keymico/bank/web/rest)/TransactionResource.java
 
 ![](README.images/GDUrp6.jpg)
+
+ 
+
+### Specify Keycloak’s issuer-uri
+
+-   Open up the file \$BANKING/src/main/resources/config/application.yml and
+    find issuer-uri. Set it to:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ issuer-uri: https://keycloak:9443/auth/realms/banking
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Make sure we use keycloak as hostname. In the Host1, Host2 and Host3,
+    keycloak is pointing to 127.0.0.1 (i.e localhost)
+
+-   Make sure we also set the client-id and client-secret as per what we copied
+    from Keycloak as per paragraph "Setting up Keycloak realm, client and user"
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+client-id: bankingclient
+client-secret: <as per copied from Keycloak>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   We are now good. Save and close the application.yml file
+
+-   Make a copy of application.yml and upload it to Host1, Host2, Host3 - under
+    the \$CURRENT_WORKING_DIR folder
+
+ 
+
+### Specify JDBC URL
+
+-   Open up the file \$BANKING/src/main/resources/config/application-prod.yml
+
+-   Recall the JDBC URL and the password we set for the banking database user
+    (paragraph CockroachDB Host1 initialisation). Put both information in the
+    url and password fields in the
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    url: <JDBC URL>
+    username: banking
+    password: <banking database user password>
+    hikari:
+      poolName: Hikari
+      auto-commit: false
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Make a copy of application-prod.yml and upload it to Host1, Host2, Host3 -
+    under the \$CURRENT_WORKING_DIR folder. Make sure the JDBC URL reflect where
+    the application-prod files are being uploaded. For example, if we upload an
+    application-prod.yml file to  Host3, the JDBC URL should say
+    [jdbc:postgresql://](jdbc:postgresql://)**host3**[:26257/banking?sslmode=verify-full&sslrootcert=/home/cockroach/certs/ca.crt](:26257/banking?sslmode=verify-full&sslrootcert=/home/cockroach/certs/ca.crt)
