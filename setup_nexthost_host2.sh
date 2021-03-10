@@ -46,13 +46,10 @@ export MINIO_PUBLIC_CERT=public2.crt
 export MINIO_PRIVATE_KEY=private2.key
 
 export OTHER_MINIO_PUBLIC_CERT1=public1.crt
-export OTHER_MINIO_PRIVATE_KEY1=private1.key
 
 export OTHER_MINIO_PUBLIC_CERT2=public3.crt
-export OTHER_MINIO_PRIVATE_KEY2=private3.key
 
 export OTHER_MINIO_PUBLIC_CERT3=public4.crt
-export OTHER_MINIO_PRIVATE_KEY3=private4.key
 
 
 

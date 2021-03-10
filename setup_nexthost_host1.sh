@@ -82,6 +82,8 @@ export MINIO_BUCKET=myuploads
 #export DISK2=data12
 export DISK1=data1
 export DISK2=data2
+export DISK1_NAME=/dev/disk/by-id/scsi-0DO_Volume_data1
+export DISK2_NAME=/dev/disk/by-id/scsi-0DO_Volume_data2
 
 export KEYCLOAK_URL=https://github.com/keycloak/keycloak/releases/download/12.0.3/keycloak-12.0.3.tar.gz
 export KEYCLOAK_UNZIPED_DIR=keycloak-12.0.3
@@ -104,22 +106,8 @@ mkdir /opt/$COCKROACH_UNZIPED_DIR
 wget -c $COCKROACH_DOWNLOAD_URL -O - | tar -xzv --strip-components=1 -C /opt/$COCKROACH_UNZIPED_DIR
 ln /opt/$COCKROACH_UNZIPED_DIR/cockroach /usr/local/bin/cockroach
 
-
-
-
 mkdir /home/cockroach/certs
 chown -R cockroach:cockroach /home/cockroach/certs
-
-
-#cp $CURRENT_WORKING_DIR/$NODE_CRT /home/cockroach/certs
-#mv /home/cockroach/certs/$NODE_CRT /home/cockroach/certs/node.crt
-
-#cp $CURRENT_WORKING_DIR/$NODE_KEY /home/cockroach/certs
-#mv /home/cockroach/certs/$NODE_KEY /home/cockroach/certs/node.key
-
-#cp $CURRENT_WORKING_DIR/$CA_CRT /home/cockroach/certs/
-
-
 
 mkdir /home/cockroach/my-safe-directory
 chown -R cockroach:cockroach /home/cockroach/my-safe-directory
@@ -127,8 +115,8 @@ chown -R cockroach:cockroach /home/cockroach/my-safe-directory
 cockroach cert create-ca \
 --certs-dir=/home/cockroach/certs \
 --ca-key=/home/cockroach/my-safe-directory/ca.key
-#Copy the file (ca.crt) to other servers
 
+#Copy the file (ca.crt) to other servers
 cockroach cert create-node \
 $NODE_ACCESS_LIST \
 --certs-dir=/home/cockroach/certs \
@@ -137,7 +125,6 @@ $NODE_ACCESS_LIST \
 chmod 700 /home/cockroach/certs/node.crt
 chmod 700 /home/cockroach/certs/node.key
 chmod 744 /home/cockroach/certs/$CA_CRT
-
 
 mkdir $OTHER_NODE1_CERT_FOLDER
 mkdir $OTHER_NODE2_CERT_FOLDER

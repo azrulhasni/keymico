@@ -16,12 +16,24 @@ equipment](https://www.cnet.com/news/huawei-ban-full-timeline-us-sanctions-china
 the Chinese telecom giant and phone maker".
 
 A little known fact about Huawei: they also operate as a cloud service provider
-(CSP). Now imagine that we are a user of their cloud service and these bans
-hitting Huawei's telco business are expanding as we speak - can we sleep at
-night knowing our CSP could be targeted by a ban? Even if Huawei's CSP business
-is not banned and left alone (it was not), wouldn't our customers be worried?
-Would they not move to a more reliable company - non dependent on Huawei? This
-is the risk of using a single CSP.
+(CSP). Their cloud service is also
+affected.<[https://www.taipeitimes.com/News/biz/archives/2020/10/16/2003745224>].
+Quoting the article:
+
+ 
+
+"As part of a European tour last week, US Undersecretary of State for Economic
+Growth, Energy and the Environment Keith Krach met executives including Deutsche
+Telekom AG CEO Timotheus Hoettges and Meinrad Spenger, the head of Spanish
+telecom carrier MasMovil, to urge them to ditch Chinese vendors of cloud
+infrastructure on data-security concerns."
+
+ 
+
+Now imagine that we are a user of Huawei's cloud services - can we sleep at
+night knowing our CSP could be targeted by a ban? What about our customers?
+Wouldn't they be worried? Would they not move to a more reliable company - non
+dependent on Huawei? This is the risk of using a single CSP.
 
  
 
@@ -40,14 +52,14 @@ fair due.
 
 Apart from global politics, technology lock in is another risk of using only one
 CSP. So we coded our business logic as a serverless component on AWS, want to
-move that to Azure - well, that is not possible without recoding it. Another
-aspect of lock down is data. Even if we are using standard base technology (such
-as a SQL compatible database) - it will still take a huge time to transfers
-terabytes of data from one CSP to another - such that, we are locked in by one
-CSP because moving data is just too costly and take too long. Not having a
-choice means, you might need to compete with your own CSP. Take Netflix for
-example - a loyal user of Amazon Web Services. And yet, Amazon also has its own
-streaming service (Amazon Prime) rivalling Netflix. That would not have been a
+move that to Azure - well, you will have to do some work. Another aspect of lock
+in is data. Even if we are using standard base technology (such as a SQL
+compatible database) - it will still take a huge time to transfers terabytes of
+data from one CSP to another - such that, we are locked in by one CSP because
+moving data is just too costly and take too long. Not having a choice means, you
+might need to compete with your own CSP. Take Netflix for example - a loyal user
+of Amazon Web Services. And yet, Amazon also has its own streaming service
+(Amazon Prime) rivalling Netflix. In my opinion, that would not have been a
 comfortable thing for Netflix, having to be dependent on their competitor!
 
  
@@ -65,8 +77,8 @@ standard) to go about multi-cloud - enter the Keymico stack.
  
 
 In this article, we will introduce the Keymico stack. We will run through a test
-environment where the stack is well… stacked up, and we will then test it for
-resiliency.
+environment where the stack is well… stacked up, and we will then simulate a
+failure and see how resilient is this stack.
 
  
 
@@ -105,10 +117,10 @@ a Keymico+ stack in the future)
 ### Only for cloud?
 
 The great thing about the Keymico stack is that it doesn’t have to be cloud. If
-all you have is a bunch of VMs (and a CDN) you can quickly setup a super
-resilient cloud-like infra-structure - even for on premise applications. This is
-especially true for people working in sensitive or regulated industry such as
-the military, financial services or even health.
+all you have is a bunch of VMs connected to the internet (and a CDN) you can
+quickly setup a super resilient cloud-like infra-structure - even for on premise
+applications. This is especially true for people working in sensitive or
+regulated industry such as the military, financial services or even health.
 
  
 
@@ -128,17 +140,16 @@ Archictecture
 In this article we will use a simple banking restful application (called
 Keymicobank) that will be distributed to 3 VMs spread among 2 AZs.
 
- 
-
-![](README.images/bK2Yox.jpg)
+![](README.images/Pw4jVI.jpg)
 
 -   In this architecture, we will setup Minio, Keycloak and CockroachDB in 3 VMs
     in 2 different AZs. Minio will have a 4th VM in accordance to its minimal
     requirement
 
--   This is a test setup so we mix everything together in a single VM. In
-    reality, you may want to separate your data and identity into different
-    layers
+-   This is a test setup, so we mix everything together in a single VM (DB,
+    identity, application). In a production environment, you may want to
+    separate your data and identity into different layers. And you may want to
+    load-balance traffic per layer.
 
 -   Both CockhroachDB and Minio are sync across AZs so that data loss is
     minimised
@@ -155,7 +166,7 @@ Keymicobank) that will be distributed to 3 VMs spread among 2 AZs.
 
 -   We emulate a CDN using an Nginx load balancer. Of course, in this test
     setup, if the single node load balancer fails then the whole setup fails. In
-    reality, we would highly encourage the usage of CDN.
+    reality, we would highly encourage the usage of a proper CDN.
 
 -   The Nginx load balancer is configured to round robin the requests to the
     applications. No session stickiness is expected as we assume data would
@@ -170,15 +181,17 @@ Getting our hands dirty - Preliminary environment setup
 
 ### What do we need
 
--   We would need 4 or 5 VMs, if possible internet facing for full effect (the
+-   We would need 4 or 5 VMs, if possible, internet facing for full effect (the
     VMs can be on a LAN, but, depending on your setup, you might not see the
     effect of multi-AZ failure test we are doing later)
 
     1.  3 VMs for our application + Keymico stack
 
-    2.  1 VM for NGINX
+    2.  1 VM for Minio alone
 
-    3.  Optionally, 1 VM for Jmeter to perform performance test (we can also run
+    3.  1 VM for NGINX
+
+    4.  Optionally, 1 VM for Jmeter to perform performance test (we can also run
         Jmeter on our laptop if we want)
 
 -   Most of these commands should be the same across the VMs, so a tool like
@@ -189,14 +202,14 @@ Getting our hands dirty - Preliminary environment setup
     such as apt-get. You may want to find the equivalent command in your
     favourite OS
 
--   We will name (hostname) our VMs host1, host2 and host3. We will use plain
-    old /etc/hosts for this. In reality, you may want to use proper DNS. We will
-    put host1 and host3 in the same AZ and host2 in a different AZ all together.
-    Please make sure that they can communicate with each other.
+-   We will name (hostname) our VMs host1, host2, host3, host4 and host5. We
+    will use plain old /etc/hosts for this. In a production environment, you may
+    want to use proper DNS. We will put host1, host2 and host4 in the same AZ
+    and host3 and host5 in a different AZ all together. Please make sure that
+    they can communicate with each other.
 
--   We will mount 2 disks per node for Minio to use. We name the disks diskN1
-    and diskN2 with N designating the host number (e.g. host2 will have disk21
-    and disk22). The disks are mounted on /mnt/diskN1 and /mnt/diskN2
+-   We will mount 2 disks per node for Minio to use. We name the disks data1 and
+    data2 The disks are mounted on /mnt/data1 and /mnt/data2
 
 -   We will also need SSH access to all hosts.
 
@@ -207,7 +220,7 @@ Getting our hands dirty - Preliminary environment setup
 Create users (notice the command to create user has a space in front of `sudo`
 so that the command is not stored in bash history - you do not want people to
 see the password by looking at history. Another - less automatable - option is
-to take out `-p` and you will be prompt for a password):
+to take out `-p` and you will be prompted for a password):
 
 -   cockroach
 
@@ -219,7 +232,7 @@ to take out `-p` and you will be prompt for a password):
 -   minio
 
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    >  sudo useradd -m -p $(openssl passwd -crypt "1qazZAQ!") minio -s /bin/bash
+    >  sudo useradd -m -p $(openssl passwd -crypt "<some password>") minio -s /bin/bash
     > sudo usermod -aG sudo minio
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -228,14 +241,6 @@ to take out `-p` and you will be prompt for a password):
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     >  sudo useradd -m -p $(openssl passwd -crypt "<some password>") keycloak -s /bin/bash
     > sudo usermod -aG sudo keycloak
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
--   azrulhasni (this is my name, you can use yours :) ) - this will be the main
-    SSH user
-
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    >  sudo useradd -m -p $(openssl passwd -crypt "<some password>") azrulhasni -s /bin/bash
-    > sudo usermod -aG sudo azrulhasni
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
  
@@ -249,22 +254,15 @@ to take out `-p` and you will be prompt for a password):
     > sudo usermod -aG sudo minio
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   azrulhasni - this will be the main SSH user
-
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    >  sudo useradd -m -p $(openssl passwd -crypt "<some password>") azrulhasni -s /bin/bash
-    > sudo usermod -aG sudo azrulhasni
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
  
 
 ### User for Host 5
 
--   azrulhasni - this will be the main SSH user
+-   nginx
 
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    >  sudo useradd -m -p $(openssl passwd -crypt "<some password>") azrulhasni -s /bin/bash
-    > sudo usermod -aG sudo azrulhasni
+    >  sudo useradd -m -p $(openssl passwd -crypt "<some password>") nginx -s /bin/bash
+    > sudo usermod -aG sudo nginx
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
  
@@ -273,14 +271,14 @@ to take out `-p` and you will be prompt for a password):
 
 ### Directory structure for Host1, Host2 and Host3
 
--   /opt : This is where we put Keycloak’s, Minio’s and CockroachDB’s binary
-    files
+-   /opt : This is where we put Keycloak’s, Minio’s, CockroachDB’s and
+    application's binary files
 
--   /mnt/diskN1: Minio mounted disk1. N designates the host number
+-   /mnt/disk1: Minio mounted disk1.
 
--   /mnt/diskN2: Minio mounted disk2. N designates the host number
+-   /mnt/disk2: Minio mounted disk2.
 
--   /home/azrulhasni: Application binary and main user home directory
+-   /workingdir: Working directory where we will first upload our files
 
 -   /home/cockroach: Cockroach user home directory
 
@@ -290,6 +288,11 @@ to take out `-p` and you will be prompt for a password):
 
 -   /home/minio: Minio user home directory
 
+-   /home/minio/.minio/certs: Minio’s host certificate directory
+
+-   /home/minio/.minio/certs/CAs: Minio’s certificate directory for all the
+    other hosts
+
 -   /home/keycloak: Keycloak user home directory
 
  
@@ -298,19 +301,24 @@ to take out `-p` and you will be prompt for a password):
 
 -   /opt : This is where we put Minio’s binary files
 
--   /mnt/disk41: Minio mounted disk1.
+-   /mnt/data1: Minio mounted disk \#1.
 
--   /mnt/disk42: Minio mounted disk2.
+-   /mnt/data2: Minio mounted disk \#2.
 
--   /home/azrulhasni: Application binary and main user home directory
+-   /workingdir: Working directory
 
 -   /home/minio: Minio user home directory
+
+-   /home/minio/.minio/certs: Minio’s host certificate directory
+
+-   /home/minio/.minio/certs/CAs: Minio’s certificate directory for all the
+    other hosts
 
  
 
 ### Directory structure for Host5
 
--   /home/azrulhasni: Application binary
+-   /workingdir: Working directory
 
  
 
@@ -396,7 +404,7 @@ to take out `-p` and you will be prompt for a password):
 
  
 
-### Host mapping for client
+### Host mapping for host5
 
 -   Open up the /etc/hosts file
 
@@ -408,92 +416,293 @@ to take out `-p` and you will be prompt for a password):
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 <host4 ip address> host4
-<host4 ip address> keycloak 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -   Alternatively, we can also use a DNS for all these entries
 
  
 
-Getting our hands dirty - Host1 setup
--------------------------------------
+Getting our hands dirty
+-----------------------
+
+We find that is it better to setup components per components across all the
+servers instead of setting up server per server. This also facilitates
+automation, for example, using Ansible. We will first present the environment
+variables which are server specific.
 
  
 
-The following instructions is only for Host1
-
- 
-
- 
-
- 
-
-### Environment variables
-
-The list below is the environment variables mainly for Host1.
+### Environment variables for Host1
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-export CURRENT_WORKING_DIR=/home/azrulhasni
-
-#-----------COCKROACHDB ENVIRONMENT VARIABLES---------------------
-#-----------------------------------------------------------------
-
-export COCKROACH_DOWNLOAD_URL=https://binaries.cockroachdb.com/cockroach-v20.2.5.linux-amd64.tgz
-export COCKROACH_UNZIPED_DIR=cockroach-v20.2.5.linux-amd64
+export CURRENT_WORKING_DIR=/workingdir
 export HOST=host1
-export OTHER_HOSTS=host2,host3
+export HOST2=host2
+export HOST3=host3
+export HOST4=host4
 
+
+#-----------COCKROACHDB ENVIRONMENT VARIABLES FOR HOST1---------------------
+#---------------------------------------------------------------------------
+
+#--Where to download CockroachDB
+export COCKROACH_DOWNLOAD_URL=https://binaries.cockroachdb.com/cockroach-v20.2.5.linux-amd64.tgz
+
+#--Name of the unzipped folder for CockroachDB
+export COCKROACH_UNZIPED_DIR=cockroach-v20.2.5.linux-amd64
+
+
+#--This is the CockroachDB certificate configuration. 
+#--In the NODE_ACCESS_LIST, list down all possible access point to CockroachDB
 export CA_CRT=ca.crt
-export NODE_ACCESS_LIST=10.106.0.2 46.101.1.218 host1 ubuntu-s-4vcpu-8gb-lon1-01 localhost 127.0.0.1 #space seperated hostname/ip address used to access host1
+export NODE_ACCESS_LIST="139.59.175.78 host1 localhost 127.0.0.1" #space seperated hostname/ip address used to access host1
+
+#--CockroachDB is also available in 2 other hosts, specify their info here
+#--The OTHER_NODE1_ACCESS_LIST, list down all access points to Host2's CockroachDB
+#--The OTHER_NODE2_ACCESS_LIST, list down all access points to Host3's CockroachDB\
 
 export OTHER_NODE1=host2
 export OTHER_NODE1_CERT_FOLDER=/home/cockroach/certs2 
-export OTHER_NODE1_ACCESS_LIST=10.106.0.4 46.101.52.93 host2 ubuntu-s-4vcpu-8gb-lon1-02 localhost 127.0.0.1 #space seperated hostname/ip
+export OTHER_NODE1_ACCESS_LIST="46.101.63.38 host2 localhost 127.0.0.1" #space seperated hostname/ip
 
 export OTHER_NODE2=host3
 export OTHER_NODE2_CERT_FOLDER=/home/cockroach/certs3
-export OTHER_NODE2_ACCESS_LIST=10.106.0.3 167.172.50.90 host3 ubuntu-s-4vcpu-8gb-lon1-03 localhost 127.0.0.1 #space seperated 
+export OTHER_NODE2_ACCESS_LIST="46.101.246.150 host3 localhost 127.0.0.1" #space seperated 
 
 
-#-----------MINIO ENVIRONMENT VARIABLES---------------------
-#-----------------------------------------------------------
+#-----------MINIO ENVIRONMENT VARIABLES FOR HOST1---------------------------
+#---------------------------------------------------------------------------
 
+#--Where to download Minio
 export MINIO_DOWNLOAD_URL=https://dl.min.io/server/minio/release/linux-amd64/minio
+
+#--Where to download Minio client
 export MINIO_CLIENT_DOWNLOAD_URL=https://dl.min.io/client/mc/release/linux-amd64/mc
+
+#--Where to download Go cert generator
 export GO_CERT_GENERATOR_URL=https://golang.org/src/crypto/tls/generate_cert.go?m=text
 
-#--Minio admin user
+#--Configuration for Minio admin user
 export MINIO_ADMIN_USERNAME=minio-admin
-export MINIO_ADMIN_PASSWORD=<minio admin password>
+export MINIO_ADMIN_PASSWORD=<some password>
 
-#--Minio system user
+#--Configuration for Minio system user. This will be used by our app to connect to Minio
 export MINIO_USERNAME=mystoreuser
-export MINIO_PASSWORD=<minio user password>
+export MINIO_PASSWORD=<some password>
 
-export MINIO_SERVERS=https://host1/mnt/data11\ https://host1/mnt/data12\ https://host2/mnt/data21\ https://host2/mnt/data22\ https://host3/mnt/data31\ https://host3/mnt/data32\ https://host4/mnt/data41\ https://host4/mnt/data42 #spaces must be excaped
-
+#--Minio hosts expression 
+export MINIO_SERVERS=https://host{1...4}/mnt/data{1...2}
 export MINIO_ALIAS=mystore
 export MINIO_BUCKET=myuploads
 
-export DISK1=data11
-export DISK2=data12
+#—Folders where disks are mounted under /mnt
+export DISK1=data1
+export DISK2=data2
+
+#—Actual device location of disks respectively
+export DISK1_NAME=/dev/disk/by-id/scsi-0DO_Volume_data1
+export DISK2_NAME=/dev/disk/by-id/scsi-0DO_Volume_data2
 
 
-#-----------KEYCLOAK ENVIRONMENT VARIABLES---------------------
-#--------------------------------------------------------------
+#—————KEYCLOAK ENVIRONMENT VARIABLES FOR HOST1------------------------------
+#---------------------------------------------------------------------------
+
+#- - Where to download Keycloak
+export KEYCLOAK_URL=https://github.com/keycloak/keycloak/releases/download/12.0.3/keycloak-12.0.3.tar.gz
+
+#- - Keycloak’s unzip folder name
+export KEYCLOAK_UNZIPED_DIR=keycloak-12.0.3
+
+#- - Where to download Postgresql JDBC jar file
+export POSTGRESQL_JDBC_DOWNLOAD_URL=https://jdbc.postgresql.org/download/postgresql-42.2.19.jar
+
+#- - Name of Postgresql JDBC jar file
+export POSTGRESQL_JDBC_JAR=postgresql-42.2.18.jar
+
+#- - JDBC URL (this url must be escaped - use https://dwaves.de/tools/escape/)
+export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host1:26257\/keycloakdb?sslmode=verify-full\&amp;sslrootcert=\/home\/cockroach\/certs\/ca\.crt'
+
+
+
+#—————APPLICATION ENVIRONMENT VARIABLES FOR HOST1---------------------------
+#---------------------------------------------------------------------------
+
+# - - Configuration file containing JDBC URL for the app to connect to,
+# - - username, password, Keycloak issuer URL and Minio URL
+export BANKING_APP_PROD_CONFIG_FILENAME=application-prod.host1.yml
+
+# - - The location of JVM's cacerts file
+export CACERTS_LOC=/usr/lib/jvm/java-11-openjdk-amd64/lib/security/cacerts
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ 
+
+### Environment variable for Host2
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+export CURRENT_WORKING_DIR=/workingdir
+export HOST=host2
+
+#-----------COCKROACHDB ENVIRONMENT VARIABLES FOR HOST2---------------------
+#---------------------------------------------------------------------------
+
+export COCKROACH_DOWNLOAD_URL=https://binaries.cockroachdb.com/cockroach-v20.2.5.linux-amd64.tgz
+export COCKROACH_UNZIPED_DIR=cockroach-v20.2.5.linux-amd64
+
+#-- Other hosts containg CockroachDB
+export OTHER_HOSTS=host1,host3
+
+#-- Name of certificates imported from Host1
+export CA_CRT=ca.crt
+export NODE_CRT=node.host2.crt
+export NODE_KEY=node.host2.key
+
+
+#-----------MINIO ENVIRONMENT VARIABLES FOR HOST2---------------------------
+#---------------------------------------------------------------------------
+
+export MINIO_DOWNLOAD_URL=https://dl.min.io/server/minio/release/linux-amd64/minio
+export MINIO_USERNAME=minio-admin
+export MINIO_PASSWORD=<Some password>
+export MINIO_SERVERS=https://host{1...4}/mnt/data{1...2}
+
+export DISK1=data1
+export DISK2=data2
+export DISK1_NAME=/dev/disk/by-id/scsi-0DO_Volume_data21
+export DISK2_NAME=/dev/disk/by-id/scsi-0DO_Volume_data22
+
+#-- Minio public and private key generated in Host1 for Host2
+export MINIO_PUBLIC_CERT=public2.crt
+export MINIO_PRIVATE_KEY=private2.key
+
+#-- Minio public key generated in Host1 for Host1, Host3 and Host4
+export OTHER_MINIO_PUBLIC_CERT1=public1.crt
+export OTHER_MINIO_PUBLIC_CERT2=public3.crt
+export OTHER_MINIO_PUBLIC_CERT3=public4.crt
+
+#—————KEYCLOAK ENVIRONMENT VARIABLES FOR HOST2------------------------------
+#---------------------------------------------------------------------------
 
 export KEYCLOAK_URL=https://github.com/keycloak/keycloak/releases/download/12.0.3/keycloak-12.0.3.tar.gz
 export KEYCLOAK_UNZIPED_DIR=keycloak-12.0.3
 export POSTGRESQL_JDBC_DOWNLOAD_URL=https://jdbc.postgresql.org/download/postgresql-42.2.19.jar
 export POSTGRESQL_JDBC_JAR=postgresql-42.2.18.jar
-export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host1:26257\/keycloakdb' #!!!-this url must be escaped - use https://dwaves.de/tools/escape/
+export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host2:26257\/keycloakdb?sslmode=verify-full\&amp;sslrootcert=\/home\/cockroach\/certs\/ca\.crt'
+
+
+#—————APPLICATION ENVIRONMENT VARIABLES FOR HOST2---------------------------
+#---------------------------------------------------------------------------
+
+export BANKING_APP_PROD_CONFIG_FILENAME=application-prod.host2.yml
+export CACERTS_LOC=/usr/lib/jvm/java-11-openjdk-amd64/lib/security/cacerts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ 
+
+### Environment variable for Host3
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+export CURRENT_WORKING_DIR=/workingdir
+export HOST=host3
+
+#-----------COCKROACHDB ENVIRONMENT VARIABLES FOR HOST3---------------------
+#---------------------------------------------------------------------------
+
+export COCKROACH_DOWNLOAD_URL=https://binaries.cockroachdb.com/cockroach-v20.2.5.linux-amd64.tgz
+export COCKROACH_UNZIPED_DIR=cockroach-v20.2.5.linux-amd64
+
+#-- Other hosts containg CockroachDB
+export OTHER_HOSTS=host1,host2
+
+#-- Name of certificates imported from Host1
+export CA_CRT=ca.crt
+export NODE_CRT=node.host3.crt
+export NODE_KEY=node.host3.key
+
+#-----------MINIO ENVIRONMENT VARIABLES FOR HOST3---------------------------
+#---------------------------------------------------------------------------
+export MINIO_DOWNLOAD_URL=https://dl.min.io/server/minio/release/linux-amd64/minio
+export MINIO_USERNAME=minio-admin
+export MINIO_PASSWORD=<some password>
+
+export MINIO_SERVERS=https://host{1...4}/mnt/data{1...2}
+
+export DISK1=data1
+export DISK2=data2
+export DISK1_NAME=/dev/disk/by-id/scsi-0DO_Volume_data31
+export DISK2_NAME=/dev/disk/by-id/scsi-0DO_Volume_data32
+
+#-- Minio public and private key generated in Host1 for Host3
+export MINIO_PUBLIC_CERT=public3.crt
+export MINIO_PRIVATE_KEY=private3.key
+
+#-- Minio public key generated in Host1 for Host1, Host2 and Host4
+export OTHER_MINIO_PUBLIC_CERT1=public1.crt
+export OTHER_MINIO_PUBLIC_CERT2=public2.crt
+export OTHER_MINIO_PUBLIC_CERT3=public4.crt
+
+#—————KEYCLOAK ENVIRONMENT VARIABLES FOR HOST3------------------------------
+#---------------------------------------------------------------------------
+
+export KEYCLOAK_URL=https://github.com/keycloak/keycloak/releases/download/12.0.3/keycloak-12.0.3.tar.gz
+export KEYCLOAK_UNZIPED_DIR=keycloak-12.0.3
+export POSTGRESQL_JDBC_DOWNLOAD_URL=https://jdbc.postgresql.org/download/postgresql-42.2.19.jar
+export POSTGRESQL_JDBC_JAR=postgresql-42.2.18.jar
+export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host3:26257\/keycloakdb?sslmode=verify-full\&amp;sslrootcert=\/home\/cockroach\/certs\/ca\.crt'
+
+#—————APPLICATION ENVIRONMENT VARIABLES FOR HOST3---------------------------
+#---------------------------------------------------------------------------
+
+export BANKING_APP_PROD_CONFIG_FILENAME=application-prod.host3.yml
+export CACERTS_LOC=/usr/lib/jvm/java-11-openjdk-amd64/lib/security/cacerts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ 
+
+### Environment variable for Host4
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+export CURRENT_WORKING_DIR=/workingdir
+
+export HOST=host4
+
+#-----------MINIO ENVIRONMENT VARIABLES FOR HOST3---------------------------
+#---------------------------------------------------------------------------
+
+export MINIO_DOWNLOAD_URL=https://dl.min.io/server/minio/release/linux-amd64/minio
+export MINIO_USERNAME=minio-admin
+export MINIO_PASSWORD=<Some password>
+
+export MINIO_SERVERS=https://host{1...4}/mnt/data{1...2}
+
+export DISK1=data1
+export DISK2=data2
+export DISK1_NAME=/dev/disk/by-id/scsi-0DO_Volume_data4b1 
+export DISK2_NAME=/dev/disk/by-id/scsi-0DO_Volume_data4b2 
+
+export MINIO_PUBLIC_CERT=public4.crt
+export MINIO_PRIVATE_KEY=private4.key
+
+export OTHER_MINIO_PUBLIC_CERT1=public1.crt
+export OTHER_MINIO_PUBLIC_CERT2=public2.crt
+export OTHER_MINIO_PUBLIC_CERT3=public3.crt
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
  
 
  
 
-### CockroachDB setup
+CockroachDB setup
+-----------------
+
+The following instructions is only for Host1. Make sure you have created the
+appropriate users
+
+ 
+
+### CockroachDB Host1 setup
 
 -   The instructions below came from CockroachDB
     website[<https://www.cockroachlabs.com/docs/v20.2/install-cockroachdb-linux>].
@@ -510,12 +719,18 @@ export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host1:26257\/keycloakdb' #!!!-th
     to opt for a geo-based topology, e.g.
     [<https://www.cockroachlabs.com/docs/v20.2/topology-geo-partitioned-replicas.html>]
 
+-   We will setup CockroachDB in Host1, Host2 and Host3. We will then use Host1
+    to initialise the database
+
+-   SSH to Host1
+
+-   Setup the environment variables as per the paragraph above for Host1
+
 -   Download CockroachDB
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 > sudo mkdir /opt/$COCKROACH_UNZIPED_DIR
-wget -c $COCKROACH_DOWNLOAD_URL -O - | tar -xzv --strip-components=1 -C /opt/$COCKROACH_UNZIPED_DIR
-
+> sudo wget -c $COCKROACH_DOWNLOAD_URL -O - | tar -xzv --strip-components=1 -C /opt/$COCKROACH_UNZIPED_DIR
 > sudo ln /opt/$COCKROACH_UNZIPED_DIR/cockroach /usr/local/bin/cockroach
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -523,24 +738,24 @@ wget -c $COCKROACH_DOWNLOAD_URL -O - | tar -xzv --strip-components=1 -C /opt/$CO
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 > sudo mkdir /home/cockroach/certs
+> sudo chown -R cockroach:cockroach /home/cockroach/certs
 
 > sudo mkdir /home/cockroach/my-safe-directory
+> sudo chown -R cockroach:cockroach /home/cockroach/my-safe-directory
 
 > sudo cockroach cert create-ca \
 --certs-dir=/home/cockroach/certs \
 --ca-key=/home/cockroach/my-safe-directory/ca.key
 
+#Copy the file (ca.crt) to other servers
 > sudo cockroach cert create-node \
 $NODE_ACCESS_LIST \
 --certs-dir=/home/cockroach/certs \
 --ca-key=/home/cockroach/my-safe-directory/ca.key
 
-> sudo chown -R cockroach:cockroach /home/cockroach/certs
-> sudo chown -R cockroach:cockroach /home/cockroach/my-safe-directory
-
 > sudo chmod 700 /home/cockroach/certs/node.crt
 > sudo chmod 700 /home/cockroach/certs/node.key
-> sudo chmod 700 /home/cockroach/certs/$CA_CRT
+> sudo chmod 744 /home/cockroach/certs/$CA_CRT
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -   In Host1, we will create CockroachDB certificates for other nodes (Host2 and
@@ -550,43 +765,52 @@ $NODE_ACCESS_LIST \
 > sudo mkdir $OTHER_NODE1_CERT_FOLDER
 > sudo mkdir $OTHER_NODE2_CERT_FOLDER
 
+> sudo cp /home/cockroach/certs/$CA_CRT $OTHER_NODE1_CERT_FOLDER
+> sudo cp /home/cockroach/certs/$CA_CRT $OTHER_NODE2_CERT_FOLDER
+
 > sudo cockroach cert create-node \
 $OTHER_NODE1_ACCESS_LIST \
 --certs-dir=$OTHER_NODE1_CERT_FOLDER \
 --ca-key=/home/cockroach/my-safe-directory/ca.key
 
 > sudo mv $OTHER_NODE1_CERT_FOLDER/node.key $OTHER_NODE1_CERT_FOLDER/node.$OTHER_NODE1.key
-> sudo mv $OTHER_NODE1_CERT_FOLDER/node.crt $OTHER_NODE1_CERT_FOLDER/node.$OTHER_NODE1.crt
+> sudo  mv $OTHER_NODE1_CERT_FOLDER/node.crt $OTHER_NODE1_CERT_FOLDER/node.$OTHER_NODE1.crt
+#Copy the content of host2 to other servers
 
 > sudo cockroach cert create-node \
 $OTHER_NODE2_ACCESS_LIST \
 --certs-dir=$OTHER_NODE2_CERT_FOLDER \
 --ca-key=/home/cockroach/my-safe-directory/ca.key
+
 > sudo mv $OTHER_NODE2_CERT_FOLDER/node.key $OTHER_NODE2_CERT_FOLDER/node.$OTHER_NODE2.key
+
 > sudo mv $OTHER_NODE2_CERT_FOLDER/node.crt $OTHER_NODE2_CERT_FOLDER/node.$OTHER_NODE2.crt
+#Copy the content of host3 to other servers
+
 
 > sudo chown -R cockroach:cockroach $OTHER_NODE1_CERT_FOLDER
 > sudo chown -R cockroach:cockroach $OTHER_NODE2_CERT_FOLDER
+> sudo chown -R cockroach:cockroach /home/cockroach/certs/
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   Next, copy the files below to /home/azrulhasni on Host2 and Host3
+-   Next, copy the files below to \$CURRENT_WORKING_DIR on Host2 and Host3
 
     1.  /home/cockroach/ca.crt
 
-1.  /home/cockroach/certs2/node.host2.crt
+    2.  /home/cockroach/certs2/node.host2.crt
 
-2.  /home/cockroach/certs2/node.host2.crt
+    3.  /home/cockroach/certs2/node.host2.crt
 
-3.  /home/cockroach/certs3/node.host3.crt
+    4.  /home/cockroach/certs3/node.host3.crt
 
-4.  /home/cockroach/certs3/node.host3.crt
+    5.  /home/cockroach/certs3/node.host3.crt
 
 -   We will then create a configuration file for systemd so that we can start
     and stop CockroachDB easily
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  #--setup systemd
-> sudo cat << EOF | tee -a /etc/systemd/system/cockroach.service
+cat << EOF | tee -a /etc/systemd/system/cockroach.service
 [Unit]
 Description=Cockroach Database cluster node
 Requires=network.target
@@ -595,7 +819,7 @@ Requires=network.target
 Type=simple
 WorkingDirectory=/home/cockroach
 ExecStartPre=/bin/sleep 30
-ExecStart=/usr/local/bin/cockroach start --certs-dir=/home/cockroach/certs --host=$HOST --http-host=$HOST --join=$HOST,$OTHER_HOSTS --cache=25% --max-sql-memory=25%
+ExecStart=/usr/local/bin/cockroach start --certs-dir=/home/cockroach/certs --host=$HOST --http-host=$HOST --join=$HOST,$HOST2,$HOST3 --cache=25% --max-sql-memory=25%
 ExecStop=/usr/local/bin/cockroach quit --certs-dir=/home/cockroach/certs --host=$HOST
 Restart=always
 RestartSec=10
@@ -624,60 +848,181 @@ EOF
 > sudo systemctl status cockroach
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   Since Host1 is the first host, we need to initialize CokcroachDB
+-   You should see a message similar to below
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> sudo cockroach init --certs-dir=/home/cockroach/certs --host=$HOST1
+*
+* INFO: initial startup completed
+* Node will now attempt to join a running cluster, or wait for `cockroach init`.
+* Client connections will be accepted after this completes successfully.
+* Check the log file(s) for progress. 
+*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   Then, create certificates for our banking user and keycloak user
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> sudo cockroach cert create-client \
-    banking \
-    --certs-dir=/home/cockroach/certs \
-    --ca-key=/home/cockroach/my-safe-directory/ca.key
-> sudo cockroach cert create-client \
-    keycloak \
-    --certs-dir=/home/cockroach/certs \
-    --ca-key=/home/cockroach/my-safe-directory/ca.key
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
--   Copy the certificates created in /home/cockroach/certs to /home/azrulhasni
-    of Host2 and Host3
+-   We will come back to Host1 once Host2 and Host3 are set up
 
  
 
-### Creating databases
+### CockroachDB Host2 and Host3 setup
 
--   First, let us log in to the database and create the users
+-   Make sure all the users are created as per the paragraph above and the
+    environment variables are set up
+
+-   Next, make sure the files (certificates) created in Host1 is transferred to
+    the directory \$CURRENT_WORKING_DIR of both Host2 and Host3
+
+    1.  \$CURRENT_WORKING_DIR/ca.crt
+
+    2.  \$CURRENT_WORKING_DIR/node.host2.crt
+
+    3.  \$CURRENT_WORKING_DIR/node.host2.crt
+
+    4.  \$CURRENT_WORKING_DIR/node.host3.crt
+
+    5.  \$CURRENT_WORKING_DIR/node.host3.crt
+
+ 
+
+-   SSH to Host2
+
+-   Setup the environment variables as per the paragraph above for Host2
+
+-   Download CockroachDB
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> cockroach sql --certs-dir=certs --host=localhost:26257
+> sudo mkdir /opt/$COCKROACH_UNZIPED_DIR
+wget -c $COCKROACH_DOWNLOAD_URL -O - | tar -xzv --strip-components=1 -C /opt/$COCKROACH_UNZIPED_DIR
+ln /opt/$COCKROACH_UNZIPED_DIR/cockroach /usr/local/bin/cockroach
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   We will get the CockroachDB client. Use it to create users and databases. We
-    will create `keycloakdb` as Keycloak database and `keycloak` as Keycloak
-    database user. We will also create a database named `banking` for our
-    application under the user named `banking`
+-   Install certificates coming from Host1
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-root@:26257/defaultdb> CREATE USER banking WITH LOGIN PASSWORD 'somepassword'
+#--setup certs
+mkdir /home/cockroach/certs
 
-root@:26257/defaultdb> CREATE USER keycloak WITH LOGIN PASSWORD 'somepassword'
+cp $CURRENT_WORKING_DIR/$NODE_CRT /home/cockroach/certs
+mv /home/cockroach/certs/$NODE_CRT /home/cockroach/certs/node.crt
 
-root@:26257/defaultdb> CREATE DATABASE banking
+cp $CURRENT_WORKING_DIR/$NODE_KEY /home/cockroach/certs
+mv /home/cockroach/certs/$NODE_KEY /home/cockroach/certs/node.key
 
-root@:26257/defaultdb> CREATE DATABASE keycloakdb
+cp $CURRENT_WORKING_DIR/$CA_CRT /home/cockroach/certs/
 
-root@:26257/defaultdb> alter database banking owner to banking
 
-root@:26257/defaultdb> alter database keycloakdb owner to keycloak
+chmod 700 /home/cockroach/certs/node.crt
+chmod 700 /home/cockroach/certs/node.key
+chmod 744 /home/cockroach/certs/$CA_CRT
 
-root@:26257/defaultdb> exit
+chown -R cockroach:cockroach /home/cockroach/certs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-### Installing JDK
+-   Declare CockroachDB as a service in systemctl
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#--setup systemd
+cat << EOF | tee -a /etc/systemd/system/cockroach.service
+[Unit]
+Description=Cockroach Database cluster node
+Requires=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/cockroach
+ExecStartPre=/bin/sleep 30
+ExecStart=/usr/local/bin/cockroach start --certs-dir=/home/cockroach/certs --host=$HOST --http-host=$HOST --join=$HOST,$OTHER_HOSTS --cache=25% --max-sql-memory=25%
+ExecStop=/usr/local/bin/cockroach quit --certs-dir=/home/cockroach/certs --host=$HOST
+Restart=always
+RestartSec=10
+RestartPreventExitStatus=0
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=cockroach
+User=cockroach
+
+[Install]
+WantedBy=default.target
+EOF
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Start the service
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo systemctl daemon-reload
+> sudo systemctl enable cockroach
+> sudo systemctl start cockroach
+> sudo systemctl status cockroach
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   You should see a message similar to below
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*
+* INFO: initial startup completed
+* Node will now attempt to join a running cluster, or wait for `cockroach init`.
+* Client connections will be accepted after this completes successfully.
+* Check the log file(s) for progress. 
+*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Repeat the same instruction for Host3
+
+ 
+
+### CockroachDB Host1 initialisation
+
+-   Here we will create 2 users, `keycloak` and `banking`. The user `keycloak`
+    is going to be used by Keycloak to access the database. The user `banking`
+    is going to be used by our application to access the database.
+
+-   Firstly, do ensure that CockroachDB is running without error in Host1, Host2
+    and Host3
+
+-   Create a client certificate for the root user
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo cockroach cert create-client \
+    root \
+    --certs-dir=/home/cockroach/certs \
+    --ca-key=/home/cockroach/my-safe-directory/ca.key
+    
+> sudo chown -R cockroach:cockroach /home/cockroach/certs/
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Initialize CockroachDB
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> cockroach init --certs-dir=/home/cockroach/certs --host=$HOST1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   If successful, you will see
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Cluster successfully initialized
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Next we are going to create users and databases. We would need 4 files
+
+1.  Users (`keycloak `and `banking`) and database (`keycloakdb` and `banking`)
+    creation script. **Make sure we change the passwords in this file
+    **<https://github.com/azrulhasni/keymico/blob/main/keycloak/keycloak_create_user_db.sql>
+
+2.  Keycloak table creation script
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+cockroach --certs-dir=/home/cockroach/certs --host=$HOST sql < $CURRENT_WORKING_DIR/keycloak_create_user_db.sql
+cockroach --certs-dir=/home/cockroach/certs --database=keycloakdb --host=$HOST sql < $CURRENT_WORKING_DIR/keycloak_create_no_constraints.sql
+cockroach --certs-dir=/home/cockroach/certs --database=keycloakdb --host=$HOST sql < $CURRENT_WORKING_DIR/keycloak_data.sql
+cockroach --certs-dir=/home/cockroach/certs --database=keycloakdb --host=$HOST sql < $CURRENT_WORKING_DIR/keycloak_add_constraints.sql
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-    
+
+-    
+
+-    
+
+-   Installing JDK
 
 Let us install the JDK
 
@@ -824,7 +1169,7 @@ rather).
     template file
 
 -   <https://github.com/azrulhasni/keymico/blob/main/keycloak/standalone.proto.xml>.
-    Download the file and place it in /home/azrulhasni
+    Download the file and place it in \$CURRENT_WORKING_DIR
 
 -   Run the command below to setup this configuration
 
@@ -1018,7 +1363,7 @@ If all goes well, Keycloak will be started and we can use it right away.
  
 
 -   Copy the 7 files below from /home/minio to Host2, Host3 and Host4. Put the
-    files under /home/azrulhasni in respective hosts
+    files under \$CURRENT_WORKING_DIR in respective hosts
 
 1.  public1.crt
 
@@ -1174,7 +1519,8 @@ Getting our hands dirty - Host2, Host3 and Host4 setup
 ### Setup files
 
 Recall that we created a few files in Host1 to be transferred to Host2 and
-Host3. Make sure they are transferred to /home/azrulhasni of Host2 and Host3
+Host3. Make sure they are transferred to \$CURRENT_WORKING_DIR of Host2 and
+Host3
 
 1.  ca.crt
 
@@ -1715,7 +2061,7 @@ server {
   
         #if there is auth in the URL, it must be Keycloak - so send it there  
         location  / {
-		proxy_set_header Host $host:$server_port;  
+        proxy_set_header Host $host:$server_port;  
                 proxy_pass https://keycloak;  
         } 
 

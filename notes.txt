@@ -1,3 +1,14 @@
+Add data max: 66719
+
+
+1615247991116-1615249833819
+
+cut off: 1615249833819
+
+https://keycloak:9443/auth/realms/banking/protocol/openid-connect/token
+https://host5:8443/api/transactions/
+
+
 Check point for perf testing
 ============================
 1) Delete all current data (optional)

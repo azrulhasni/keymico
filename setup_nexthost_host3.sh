@@ -48,13 +48,10 @@ export MINIO_PUBLIC_CERT=public3.crt
 export MINIO_PRIVATE_KEY=private3.key
 
 export OTHER_MINIO_PUBLIC_CERT1=public1.crt
-export OTHER_MINIO_PRIVATE_KEY1=private1.key
 
 export OTHER_MINIO_PUBLIC_CERT2=public2.crt
-export OTHER_MINIO_PRIVATE_KEY2=private2.key
 
 export OTHER_MINIO_PUBLIC_CERT3=public4.crt
-export OTHER_MINIO_PRIVATE_KEY3=private4.key
 
 
 export KEYCLOAK_URL=https://github.com/keycloak/keycloak/releases/download/12.0.3/keycloak-12.0.3.tar.gz

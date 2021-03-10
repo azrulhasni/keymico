@@ -29,8 +29,6 @@ export MINIO_PASSWORD=1qazZAQ!
 
 export MINIO_SERVERS=https://host{1...4}/mnt/data{1...2}
 
-#export MINIO_SERVERS=https://host1/mnt/data11\ https://host1/mnt/data12\ https://host2/mnt/data21\ https://host2/mnt/data22\ https://host3/mnt/data31\ https://host3/mnt/data32\ https://host4/mnt/data41\ https://host4/mnt/data42 #spaces must be excaped
-
 export DISK1=data1
 export DISK2=data2
 export DISK1_NAME=/dev/disk/by-id/scsi-0DO_Volume_data4b1 
@@ -40,21 +38,8 @@ export MINIO_PUBLIC_CERT=public4.crt
 export MINIO_PRIVATE_KEY=private4.key
 
 export OTHER_MINIO_PUBLIC_CERT1=public1.crt
-export OTHER_MINIO_PRIVATE_KEY1=private1.key
-
 export OTHER_MINIO_PUBLIC_CERT2=public2.crt
-export OTHER_MINIO_PRIVATE_KEY2=private2.key
-
 export OTHER_MINIO_PUBLIC_CERT3=public3.crt
-export OTHER_MINIO_PRIVATE_KEY3=private3.key
-
-
-
-
-
-
-
-
 
 #=====================MINIO===============
 
