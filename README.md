@@ -412,10 +412,36 @@ to take out `-p` and you will be prompted for a password):
 > sudo /etc/hosts
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   Add the entries below
+-   Add the entries below.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 <host4 ip address> host4
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Alternatively, we can also use a DNS for all these entries
+
+ 
+
+### Host mapping on our laptop
+
+-   If we are running our tests on a laptop, we would need certain mapping
+
+-   Open up the /etc/hosts file
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo /etc/hosts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Add the entries below. Please note both keycloak and host4 point to host4 ip
+    address.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<host5 ip address> host5
+<host4 ip address> host4
+<host3 ip address> host3
+<host2 ip address> host2
+<host1 ip address> host1
+<host4 ip address> keycloak 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -   Alternatively, we can also use a DNS for all these entries
@@ -429,6 +455,36 @@ We find that is it better to setup components per components across all the
 servers instead of setting up server per server. This also facilitates
 automation, for example, using Ansible. We will first present the environment
 variables which are server specific.
+
+ 
+
+### Password sheet
+
+Below is the list of all the usernames need to be setup. We suggest that this
+list is updated with respective passwords as we follow this article.
+
+-   cockroach - CockroachDB UNIX user
+
+-   minio - Minio UNIX user
+
+-   keycloak - Keycloak UNIX user
+
+-   root - Unix root user and CockroachDB default user
+
+-   minio-admin - Minio admin user
+
+-   mystoreuser - Minio system user
+
+-   keycloak - Keycloak database user
+
+-   banking - Banking (application) database user
+
+-   admin - Keycloak administrator (defaulted to abc123)
+
+-   donald.duck - Keycloak user
+
+-   bankingclient - Keycloak’s client name - it is associated with a secret
+    instead of a password
 
  
 
@@ -523,7 +579,7 @@ export POSTGRESQL_JDBC_JAR=postgresql-42.2.18.jar
 export POSTGRESQL_JDBC_URL='jdbc:postgresql:\/\/host1:26257\/keycloakdb?sslmode=verify-full\&amp;sslrootcert=\/home\/cockroach\/certs\/ca\.crt'
 
 #-- Keylocak database user password
-export KEYCLOAK_DBUSER_PASSWORD=1qazZAQ!<some password>
+export KEYCLOAK_DBUSER_PASSWORD=<some password>
 
 
 
@@ -531,7 +587,8 @@ export KEYCLOAK_DBUSER_PASSWORD=1qazZAQ!<some password>
 #---------------------------------------------------------------------------
 
 # - - Configuration file containing JDBC URL for the app to connect to,
-# - - username, password, Keycloak issuer URL and Minio URL
+# - - database banking user username, database banking user password, 
+# - - Keycloak issuer URL and Minio URL
 export BANKING_APP_PROD_CONFIG_FILENAME=application-prod.host1.yml
 
 # - - The location of JVM's cacerts file
@@ -703,8 +760,6 @@ CockroachDB setup
 
  
 
- 
-
 ### CockroachDB Host1 setup
 
 -   The instructions below came from CockroachDB
@@ -814,7 +869,7 @@ $OTHER_NODE2_ACCESS_LIST \
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  #--setup systemd
-cat << EOF | tee -a /etc/systemd/system/cockroach.service
+> sudo cat << EOF | tee -a /etc/systemd/system/cockroach.service
 [Unit]
 Description=Cockroach Database cluster node
 Requires=network.target
@@ -852,7 +907,13 @@ EOF
 > sudo systemctl status cockroach
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   You should see a message similar to below
+-   You should see a message similar to below:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ Active: active (running) since ...
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   And more messages similar to:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 *
@@ -895,30 +956,30 @@ EOF
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 > sudo mkdir /opt/$COCKROACH_UNZIPED_DIR
-wget -c $COCKROACH_DOWNLOAD_URL -O - | tar -xzv --strip-components=1 -C /opt/$COCKROACH_UNZIPED_DIR
-ln /opt/$COCKROACH_UNZIPED_DIR/cockroach /usr/local/bin/cockroach
+> sudo wget -c $COCKROACH_DOWNLOAD_URL -O - | tar -xzv --strip-components=1 -C /opt/$COCKROACH_UNZIPED_DIR
+> sudo ln /opt/$COCKROACH_UNZIPED_DIR/cockroach /usr/local/bin/cockroach
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -   Install certificates coming from Host1
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #--setup certs
-mkdir /home/cockroach/certs
+> sudo mkdir /home/cockroach/certs
 
-cp $CURRENT_WORKING_DIR/$NODE_CRT /home/cockroach/certs
-mv /home/cockroach/certs/$NODE_CRT /home/cockroach/certs/node.crt
+> sudo cp $CURRENT_WORKING_DIR/$NODE_CRT /home/cockroach/certs
+> sudo mv /home/cockroach/certs/$NODE_CRT /home/cockroach/certs/node.crt
 
-cp $CURRENT_WORKING_DIR/$NODE_KEY /home/cockroach/certs
-mv /home/cockroach/certs/$NODE_KEY /home/cockroach/certs/node.key
+> sudo cp $CURRENT_WORKING_DIR/$NODE_KEY /home/cockroach/certs
+> sudo mv /home/cockroach/certs/$NODE_KEY /home/cockroach/certs/node.key
 
-cp $CURRENT_WORKING_DIR/$CA_CRT /home/cockroach/certs/
+> sudo cp $CURRENT_WORKING_DIR/$CA_CRT /home/cockroach/certs/
 
 
-chmod 700 /home/cockroach/certs/node.crt
-chmod 700 /home/cockroach/certs/node.key
-chmod 744 /home/cockroach/certs/$CA_CRT
+> sudo chmod 700 /home/cockroach/certs/node.crt
+> sudo chmod 700 /home/cockroach/certs/node.key
+> sudo chmod 744 /home/cockroach/certs/$CA_CRT
 
-chown -R cockroach:cockroach /home/cockroach/certs
+> sudo chown -R cockroach:cockroach /home/cockroach/certs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -   Declare CockroachDB as a service in systemctl
@@ -958,7 +1019,13 @@ EOF
 > sudo systemctl status cockroach
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   You should see a message similar to below
+-   You should see a message similar to below:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ Active: active (running) since ...
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   And more messages similar to:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 *
@@ -998,7 +1065,7 @@ EOF
 -   Initialize CockroachDB
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> cockroach init --certs-dir=/home/cockroach/certs --host=$HOST1
+> sudo cockroach init --certs-dir=/home/cockroach/certs --host=$HOST1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -   If successful, you will see
@@ -1131,7 +1198,7 @@ rather).
 
 -   SSH to Host1
 
--   Make sure that the users and environment variables are properly set up
+-   Make sure that the users and environment variables are properly set up.
 
 -   First, let us download Keycloak
 
@@ -1159,24 +1226,24 @@ rather).
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #--copy proto standalone xml to standalone xml
-cp $CURRENT_WORKING_DIR/standalone.proto.xml /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration
-rm /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
-mv /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.proto.xml /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
+> sudo cp $CURRENT_WORKING_DIR/standalone.proto.xml /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration
+> sudo rm /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
+> sudo mv /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.proto.xml /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
 
 #--update standalone xml for jdbc url
-sed -i -e "s/YYY_JDBC_URL_YYY/$POSTGRESQL_JDBC_URL/g" /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
+> sudo sed -i -e "s/YYY_JDBC_URL_YYY/$POSTGRESQL_JDBC_URL/g" /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
 
 #--update standalone xml for keycloak dbuser password
-sed -i -e "s/YYY_KEYCLOAK_DBUSER_PASSSWORD_YYY/$KEYCLOAK_DBUSER_PASSWORD/g" /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
+> sudo sed -i -e "s/YYY_KEYCLOAK_DBUSER_PASSSWORD_YYY/$KEYCLOAK_DBUSER_PASSWORD/g" /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
 
 #--update standalone xml for self signed cert creation
-sed -i -e "s/<keystore path=\"application\.keystore\" relative-to=\"jboss\.server\.config\.dir\" keystore-password=\"password\" alias=\"server\" key-password=\"password\" generate-self-signed-certificate-host=\"localhost\"\/>/<keystore path=\"application\.keystore\" relative-to=\"jboss\.server\.config\.dir\" keystore-password=\"password\" alias=\"keycloak\" key-password=\"password\" generate-self-signed-certificate-host=\"keycloak\"\/>/g" /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
+> sudo sed -i -e "s/<keystore path=\"application\.keystore\" relative-to=\"jboss\.server\.config\.dir\" keystore-password=\"password\" alias=\"server\" key-password=\"password\" generate-self-signed-certificate-host=\"localhost\"\/>/<keystore path=\"application\.keystore\" relative-to=\"jboss\.server\.config\.dir\" keystore-password=\"password\" alias=\"keycloak\" key-password=\"password\" generate-self-signed-certificate-host=\"keycloak\"\/>/g" /opt/$KEYCLOAK_UNZIPED_DIR/standalone/configuration/standalone.xml
 
-mkdir -p /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql/main
-cp $CURRENT_WORKING_DIR/$POSTGRESQL_JDBC_JAR /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql/main
+> sudo mkdir -p /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql/main
+> sudo cp $CURRENT_WORKING_DIR/$POSTGRESQL_JDBC_JAR /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql/main
 
 #----put JDBC jar in Keycloak
-cat << EOF | tee -a /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql/main/module.xml
+> sudo cat << EOF | tee -a /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql/main/module.xml
 <?xml version="1.0" ?>
 <module xmlns="urn:jboss:module:1.3" name="org.postgresql">
 
@@ -1191,7 +1258,7 @@ cat << EOF | tee -a /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/or
 </module>
 EOF
 
-chown -R keycloak:keycloak /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql
+> sudo chown -R keycloak:keycloak /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keycloak/org/postgresql
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -   The command above will do a few things, firstly it will update the JDBC URL
@@ -1218,7 +1285,7 @@ chown -R keycloak:keycloak /opt/$KEYCLOAK_UNZIPED_DIR/modules/system/layers/keyc
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #----declare Keycloak in systemd-------------
-sudo cat > /etc/systemd/system/keycloak.service <<EOF
+> sudo cat > /etc/systemd/system/keycloak.service <<EOF
 
 [Unit]
 Description=Keycloak
@@ -1237,13 +1304,25 @@ WantedBy=multi-user.target
 EOF
 
 #---run keycloak in systemd------
-sudo systemctl daemon-reload
-sudo systemctl enable keycloak
-sudo systemctl start keycloak
-sudo systemctl status keycloak
+> sudo systemctl daemon-reload
+> sudo systemctl enable keycloak
+> sudo systemctl start keycloak
+> sudo systemctl status keycloak
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   If all goes well, Keycloak will be started and we can use it right away.
+-   If all goes well, Keycloak will be started and we can use it right away. We
+    should see the message
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ Active: active (running) since ...
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Then, we need to trigger Keycloak to create its own self-signed certificate.
+    We do that using the command below
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ > curl -k https://localhost:9443/auth/ 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -   Repeat the same procedures in Host2 and Host3
 
@@ -1489,7 +1568,19 @@ EOF
 > sudo systemctl status minio
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   if all goes well, Minio should be up and running
+-   if all goes well, Minio should be up and running. You should see a message
+    similar to
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ Active: active (running) since ...
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   And more messages similar to:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Starting MinIO...
+Started MinIO.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
  
 
@@ -1624,6 +1715,19 @@ sudo systemctl daemon-reload
 sudo systemctl enable minio
 sudo systemctl start minio
 sudo systemctl status minio
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   You should see a message similar to
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ Active: active (running) since ...
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   And more messages similar to:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Starting MinIO...
+Started MinIO.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -   Now, let us repeat the same procedure to Host3 and Host4
@@ -2019,6 +2123,203 @@ datasource:
 
 -   Make a copy of application-prod.yml and upload it to Host1, Host2, Host3 -
     under the \$CURRENT_WORKING_DIR folder. Make sure the JDBC URL reflect where
-    the application-prod files are being uploaded. For example, if we upload an
-    application-prod.yml file to  Host3, the JDBC URL should say
+    the application-prod files are being uploaded to. For example, if we upload
+    an application-prod.yml file to  Host3, the JDBC URL should say
     [jdbc:postgresql://](jdbc:postgresql://)**host3**[:26257/banking?sslmode=verify-full&sslrootcert=/home/cockroach/certs/ca.crt](:26257/banking?sslmode=verify-full&sslrootcert=/home/cockroach/certs/ca.crt)
+
+-   Note that the JDBC URL (just like the ones we use in Keycloak) has the
+    parameters:
+
+1.  [sslmode=verify-full](sslmode=verify-full)
+
+    This is to enforce SSL certificate verification by the JDBC library
+
+2.  [sslrootcert=/home/cockroach/certs/ca.crt](sslrootcert=/home/cockroach/certs/ca.crt)
+
+    This is to specify where is the location of the CA certificate we are using.
+    We have to do this since we are using a self-signed certificate.
+
+ 
+
+### Building the application and deployment for Host1, Host2 and Host3
+
+-   Go to \$BANKING and run the command
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> ./mvnw -Pprod clean verify
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   This will build a production version of our application
+
+-   Go to \$BANKING/target and locate the file keymicobank-0.0.1-SNAPSHOT.jar -
+    upload it to Host1, Host2 and Host3 under the \$CURRENT_WORKING_DIR folder
+
+-   Recall our architecture where the application is communicating to Keycloak,
+    CockroachDB and Minio. In terms of security, the PostgreSQL JDBC jar
+    (compiled with our application) will handle certification verification (see
+    the paragraph Specify JDBC URL) for CockroachDB. For KLeycloak and Minio, we
+    have to ‘recognise’ their certificates by loading them into our JVM’s
+    cacerts file.
+
+-   SSH to Host1
+
+-   Make sure we load the environment variable.
+
+-   Run the command below to load Keycloak’s and Minio’s certificate to cacerts
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#--add minio cert to cacerts
+> sudo openssl s_client -connect $HOST:9000 </dev/null | sudo sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /tmp/minio.localhost.cer
+keytool -noprompt -import -file "/tmp/minio.localhost.cer" -keystore "$CACERTS_LOC" -alias "minio" -storepass  changeit
+
+#--add keycloak cert to cacerts
+> sudo openssl s_client -connect $HOST:9443 </dev/null | sudo sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /tmp/keycloak.localhost.cer
+keytool -noprompt -import -file "/tmp/keycloak.localhost.cer" -keystore "$CACERTS_LOC" -alias "keycloak" -storepass  changeit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   The cacerts default password is ‘changeit’. Amend the commands above if we
+    have a different password.
+
+-   Next, copy the application jar file and config file to /opt
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo mkdir /opt/banking/
+> sudo cp $CURRENT_WORKING_DIR/keymicobank-0.0.1-SNAPSHOT.jar /opt/banking/
+
+> sudo mkdir /opt/banking/config
+> sudo cp $CURRENT_WORKING_DIR/$BANKING_APP_PROD_CONFIG_FILENAME /opt/banking/config
+> sudo mv /opt/banking/config/$BANKING_APP_PROD_CONFIG_FILENAME  /opt/banking/config/application-prod.yml
+> sudo cp $CURRENT_WORKING_DIR/application.yml /opt/banking/config
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Let us now create a systemctl service and run the application
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo cat > /etc/systemd/system/banking.service <<EOF
+
+[Unit]
+Description=BankingApp
+After=network.target
+
+[Service]
+Type=idle
+User=banking
+Group=banking
+ExecStart=java -jar /opt/banking/keymicobank-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod --spring.config.name=application,application-prod --spring.config.location=file:///opt/banking/config/
+TimeoutStartSec=600
+TimeoutStopSec=600
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable banking
+systemctl start banking
+systemctl status banking
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   If all goes well, we should see the message below
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+active (running) since ....
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   We should also see the following message:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------------------------------------
+Application 'keymicobank' is running! Access URLs:
+Local:                 http://localhost:18080/
+External:         http://139.59.175.78:18080/
+Profile(s):         [prod]
+----------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Repeat these instructions for Host2 and Host3
+
+ 
+
+Testing Keymico and application
+-------------------------------
+
+Now is our big moment of truth. We will test our application and simulate a
+failure to see how the application behaves.
+
+Before we dive in, let us make sure that all our components are working fine.
+
+ 
+
+### Diagnostics of Minio
+
+-   To ensure Minio is working fine, SSH to Host1 and run:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> sudo mc --insecure admin info mystore
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   We will the get the result below. Make sure that Drives are 2/2 for every
+    hosts
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+●  host2:9000
+   Uptime: 32 minutes 
+   Version: 2021-03-04T00:53:13Z
+   Network: 4/4 OK 
+   Drives: 2/2 OK 
+●  host3:9000
+   Uptime: 3 minutes 
+   Version: 2021-03-04T00:53:13Z
+   Network: 4/4 OK 
+   Drives: 2/2 OK 
+●  host4:9000
+   Uptime: 32 minutes 
+   Version: 2021-03-04T00:53:13Z
+   Network: 4/4 OK 
+   Drives: 2/2 OK 
+●  host1:9000
+   Uptime: 42 minutes 
+   Version: 2021-03-04T00:53:13Z
+   Network: 4/4 OK 
+   Drives: 2/2 OK 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ 
+
+### Diagnostics of CockroachDB
+
+-   To see how our CockroachDB is doing, fire up a browser and access
+    [https://host1:8080]
+
+-   Log in using `banking` user
+
+-   We can then see the dashboard. If all is well, we should see the list
+    similar to below:
+
+![](README.images/5kwAyC.jpg)
+
+ 
+
+-   If a node is down, we should see something equivalent to this (Node 3 is
+    down)
+
+![](README.images/9DDFIS.jpg)
+
+ 
+
+### Smoke testing application
+
+-   Next we will smoke test the application before going into load testing. We
+    will do this from Postman
+
+-   Download and install Postman <https://www.postman.com/downloads/>
+
+-   Run Postman, click on Import button
+
+![](README.images/mDvsSB.jpg)
+
+ 
+
+Minio Delete all
+
+mc rm -r --insecure --force --dangerous mystore/myuploads
