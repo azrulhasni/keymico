@@ -621,3 +621,9 @@ curl -k --location --request POST 'https://localhost:8443/auth/realms/banking/pr
 --data-urlencode 'client_id=bankingclient' \
 --data-urlencode 'client_secret=46b52fe2-03c1-423d-a9fc-027239483da9' \
 --data-urlencode 'grant_type=password'
+
+#------------------
+Minio Delete all
+
+mc rm -r --insecure --force --dangerous mystore/myuploads
+

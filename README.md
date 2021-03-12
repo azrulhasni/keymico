@@ -1,11 +1,17 @@
-Keymico: a resilient multi-cloud stack — or how to spend your holidays in a lockdown
-====================================================================================
+Keymico: a resilient multi-cloud stack — or how to spend a weekend lockdown setting up our own cloud services
+=============================================================================================================
 
  
 
-It all started with a tussle between Huawei and a US startup company CNEX in
-2018 - and escalated to the US banning the usage of Huawei telecom technology in
-2019, to the Trump administration adding another year (until May 2021) to the
+By Azrul MADISA
+
+Mar 2021
+
+ 
+
+It all started with a tussle between Huawei and a US startup company, CNEX, in
+2018 - and it escalated to the US banning the usage of Huawei telecom technology
+in 2019, to the Trump administration adding another year (until May 2021) to the
 2019 Huawei ban
 [<https://www.cnet.com/news/huawei-ban-full-timeline-us-sanctions-china-trump-biden-5g-phone-sales/>].
 The ban is not just in the US, but also involves the EU, Canada and the UK. As a
@@ -68,11 +74,12 @@ How would you mitigate all these risks? Multi-cloud architecture is the answer.
 *"Multicloud* architectures, in which multiple services are hosted by different
 cloud providers, are the most common deployment"
 [<https://www.oreilly.com/library/view/multicloud-architecture-migration/9781492050407/ch01.html>].
-**In a multi-cloud architecture, if one CSP is out, you can always seamlessly
-fallback to another**. The challenge of multi-cloud architecture is obvious, we
-cannot leverage CSP specific cloud technology- as this would tie us to that
-specific CSP only. So we have to find a neutral way (open source, third party or
-standard) to go about multi-cloud - enter the Keymico stack.
+**In a multi-cloud architecture, if one CSP is out (banned, is leaving a market,
+hit outages), you can always seamlessly fallback to another**. The challenge of
+multi-cloud architecture is obvious, we cannot leverage CSP specific cloud
+technology- as this would tie us to that specific CSP only. So we have to find a
+neutral way (open source, third party or standard) to go about multi-cloud -
+**enter the Keymico stack**.
 
  
 
@@ -106,11 +113,11 @@ deployment.
 
  
 
-(These 3 functionalities are what I usually use cloud for - definitely it does
+(These 3 functionalities are what we usually use cloud for - definitely it does
 not cover every possible use case out there [no A.I. service for example]. Of
-course, I am thinking of extension - e.g. Vault to help manage certificates and
-security, Kafka for resilient messaging , Consul for networking etc. - so maybe
-a Keymico+ stack in the future)
+course, we are thinking of extension - e.g. Vault to help manage certificates
+and security, Kafka for resilient messaging , Consul for networking etc. - so
+maybe a Keymico+ stack in the future)
 
  
 
@@ -127,15 +134,15 @@ regulated industry such as the military, financial services or even health.
 ### Alternative
 
 An alternative to this stack is the full force Open Stack
-[<https://www.openstack.org/>]. I, personally, find Open Stack to be very
-complete - and maybe that is why it seems a tad overwhelming to setup. Then
-again, I would love to see a comparison between Open Stack and Keymico just for
-the heck of it :)
+[<https://www.openstack.org/>]. We find Open Stack to be very complete - and
+maybe that is why it seems a tad overwhelming to setup. Then again, we would
+love to see a comparison between Open Stack and Keymico just for the heck of it
+:)
 
  
 
-Archictecture
--------------
+Architecture
+------------
 
 In this article we will use a simple banking restful application (called
 Keymicobank) that will be distributed to 3 VMs spread among 2 AZs.
@@ -154,7 +161,8 @@ Keymicobank) that will be distributed to 3 VMs spread among 2 AZs.
 -   Both CockhroachDB and Minio are sync across AZs so that data loss is
     minimised
 
--   We also mounted two disks per setup for Minio to use.
+-   We also mounted two disks per setup for Minio to use. Each disk is around
+    100GB in size.
 
 -   Keycloak is not setup as a cluster. Despite that, given that Keycloak’s
     database is highly available, Keycloak access is maintained even in the
@@ -448,8 +456,8 @@ to take out `-p` and you will be prompted for a password):
 
  
 
-Getting our hands dirty
------------------------
+Let the setup begin
+-------------------
 
 We find that is it better to setup components per components across all the
 servers instead of setting up server per server. This also facilitates
@@ -907,7 +915,7 @@ EOF
 > sudo systemctl status cockroach
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   You should see a message similar to below:
+-   We should see a message similar to below:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  Active: active (running) since ...
@@ -1019,7 +1027,7 @@ EOF
 > sudo systemctl status cockroach
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   You should see a message similar to below:
+-   We should see a message similar to below:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  Active: active (running) since ...
@@ -1068,7 +1076,7 @@ EOF
 > sudo cockroach init --certs-dir=/home/cockroach/certs --host=$HOST1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   If successful, you will see
+-   If successful, we will see
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Cluster successfully initialized
@@ -1118,7 +1126,7 @@ Cluster successfully initialized
 > cockroach --certs-dir=/home/cockroach/certs --database=keycloakdb --host=$HOST sql < $CURRENT_WORKING_DIR/keycloak_add_constraints.sql
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   Congratulations! You have setup a clustered and secure CockroachDB
+-   Congratulations! We have setup a clustered and secure CockroachDB
 
  
 
@@ -1568,7 +1576,7 @@ EOF
 > sudo systemctl status minio
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   if all goes well, Minio should be up and running. You should see a message
+-   if all goes well, Minio should be up and running. We should see a message
     similar to
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1717,7 +1725,7 @@ sudo systemctl start minio
 sudo systemctl status minio
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   You should see a message similar to
+-   We should see a message similar to
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  Active: active (running) since ...
@@ -1977,10 +1985,10 @@ will do. In short, we will create a transaction and will read it back.
     application tied to a database. To install JHipster, please follow the
     instruction here <https://www.jhipster.tech/installation/>
 
--   Create a directory named “banking”, say under /Users/\<your user
+-   Create a directory named “banking”, say under /Users/\<user
     name\>/projects/banking. From now, we will refer to this directory as
-    \$BANKING. Fire up your command line console and go to the banking
-    directory. Type:
+    \$BANKING. Fire up our command line console and go to the banking directory.
+    Type:
 
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     > jhipster
@@ -2008,7 +2016,7 @@ will do. In short, we will create a transaction and will read it back.
 -   Next we will put in the data model supporting our application. For us, we
     use this file here
     <https://github.com/azrulhasni/keymico/blob/main/banking/datamodel.jh>.
-    Download the data model.jh and put it in your \$BANKING directory
+    Download the data model.jh and put it in our \$BANKING directory
 
 -   The data model, graphically looks like this:
 
@@ -2016,7 +2024,7 @@ will do. In short, we will create a transaction and will read it back.
 
 -   For this application, we are focusing mainly on Transaction
 
--   To load this model into our application, fire up your command line console
+-   To load this model into our application, fire up our command line console
     and point it ot the \$BANKING directory. Run:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -2141,7 +2149,7 @@ datasource:
 
  
 
-### Building the application and deployment for Host1, Host2 and Host3
+### Building the application and deploying it to Host1, Host2 and Host3
 
 -   Go to \$BANKING and run the command
 
@@ -2157,7 +2165,7 @@ datasource:
 -   Recall our architecture where the application is communicating to Keycloak,
     CockroachDB and Minio. In terms of security, the PostgreSQL JDBC jar
     (compiled with our application) will handle certification verification (see
-    the paragraph Specify JDBC URL) for CockroachDB. For KLeycloak and Minio, we
+    the paragraph Specify JDBC URL) for CockroachDB. For Keycloak and Minio, we
     have to ‘recognise’ their certificates by loading them into our JVM’s
     cacerts file.
 
@@ -2307,19 +2315,278 @@ Before we dive in, let us make sure that all our components are working fine.
 
  
 
-### Smoke testing application
+### Integration testing application
 
--   Next we will smoke test the application before going into load testing. We
-    will do this from Postman
+-   Next, we will run an integration test of the application before going into
+    load testing. We will do this from Postman
 
 -   Download and install Postman <https://www.postman.com/downloads/>
 
--   Run Postman, click on Import button
+-   Download the Postman Keymico collection
+    [<https://github.com/azrulhasni/keymico/blob/main/KeyMiCo.postman_collection.json>]
+
+-   Run Postman, click on Import button.
 
 ![](README.images/mDvsSB.jpg)
 
+-   Click ‘Upload Files’ and open the KeyMiCo.postman_collection.json. We should
+    have the collection on the left pane
+
+![](README.images/pEg1BS.jpg)
+
+-   Click on ‘Keycloak call to get token’. We will see the details on the main
+    pane. Click on the Body tab. Put in the password for the Keycloak user
+    donald.duck in the password field and the bankclient secret in the
+    client_secret field.
+
+![](README.images/wWgnFK.jpg)
+
+-   Click on ’Send’ and we will get the access token back. We have already
+    program this collection to reuse the access token for the next API calls, so
+    we don’t have to copy paste anything here
+
+![](README.images/URNbfx.jpg)
+
+-   Next, go back to the KeyMiCo collection on the side pane and click on ‘Add
+    transaction data’. Again, we don’t have to do anything much, just click on
+    ’Send'
+
+-   This will create a Transaction data on our Keymico Bank service. It will
+    also upload some files. If all goes well, we should get a Status 200 OK and
+    a response as below
+
+![](README.images/ZozREk.jpg)
+
+-   Let us now query back this data. Go back to the KeyMiCo collection on the
+    side pane and click on Get transaction data. The main pane will show us the
+    details of the call. We have already program the id from the Add transaction
+    data result to be copied to the Get transaction data URL. So we don’t have
+    anything else to do. Click on Send.
+
+![](README.images/GRQevX.jpg)
+
+-   We should get a return status of 200 OK and a response similar to the above
+
  
 
-Minio Delete all
+### Load testing
 
-mc rm -r --insecure --force --dangerous mystore/myuploads
+-   Before we begin, let us see what we are going to do.  We are trying to
+    establish a benchmark performance for our system. We then simulate a failure
+    and see if that failure impacts our overall system.
+
+-   Test parameters and case
+
+1.  700 concurrent users
+
+2.  1 hour
+
+3.  We will call Keycloak and use the access token 3 times before we renew
+
+4.  Once access token is obtained, we will create a Transaction including
+    uploading a file
+
+5.  Then we will query the same transaction again
+
+6.  We will have a think time of 5s between actions
+
+ 
+
+-   Note that, even if we write and read the same data again, because of the
+    round robin nature of our system, we will always write to a different node
+    than when we read. This will ensure that data replication across the nodes
+    are done properly within the transaction
+
+ 
+
+-   The test scenario is per below:
+
+![](README.images/g9O48I.jpg)
+
+-   We will use Jmeter for load testing. Download Jmeter
+    [<https://jmeter.apache.org/download_jmeter.cgi>] and unzip it under
+    \$BANKING. Let us rename the folder from apache-jmeter-x.y.z to just jmeter
+
+-   Download the Jmeter script from
+    <https://github.com/azrulhasni/keymico/blob/main/KeyMiCo.jmeter.jmx> and
+    place it under \$BANKING
+
+-   Open up that file and search for client_secret. Replace the client secret
+    with your own bankingclient client secret
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+<elementProp name="client_secret" elementType="HTTPArgument" enabled="true">
+<stringProp name="Argument.name">client_secret</stringProp>
+<stringProp name="Argument.value"><Your own bankingclient secret here></stringProp>
+<stringProp name="Argument.metadata">=</stringProp>
+<boolProp name="HTTPArgument.always_encode">false</boolProp>
+<boolProp name="HTTPArgument.use_equals">true</boolProp>
+</elementProp>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Next, fire up our command line console and run
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+> $BANKING/jmeter/bin/jmeter -n  -t KeyMiCo.jmeter.jmx
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ 
+
+### Load testing result
+
+-   We will see a list of performance summaries as per below
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+summary +    106 in 00:00:30 =    3.5/s Avg:   307 Min:   159 Max:   868 Err:     0 (0.00%) Active: 50 Started: 50 Finished: 0
+summary =    141 in 00:00:59 =    2.4/s Avg:   320 Min:   159 Max:  1567 Err:     0 (0.00%)
+summary +    194 in 00:00:30 =    6.5/s Avg:   271 Min:   132 Max:   818 Err:     0 (0.00%) Active: 75 Started: 75 Finished: 0
+...
+...
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   The line summary + designate the summary of the current sample. The line
+    summary = designate the cumulative summary
+
+-   After 30 minutes, we will cut off Host3 (Frankfurt)
+
+-   We will then let the script continues for 30 more minutes before it stops
+
+-   The performance data is collected in the file jmeter_data_4.csv. Let us open
+    this file
+
+![](README.images/JdrJbB.jpg)
+
+-   The measure of performance is captured in the column ‘Latency’ in
+    millisecond
+
+-   By using the column URL, we will know what endpoint was call. We should
+    segregate data based on either we create a transaction or query one
+
+1.  URL=https://keycloak:9443/… : This is Keycloak access token call
+
+2.  URL=<https://host5:8443/api/transactions/> : This is where we create a
+    transaction and upload a file
+
+3.  URL=<https://host5:8443/api/transactions/>aaaaaa : This is where we query
+    the transaction
+
+-   The column ’timeStamp’ will give us the execution time. We should sort our
+    data by this column. To find the break point where host3 was terminated, we
+    need to add 30m (1,800,000 ms) to the first value in the column. As the
+    point of termination, the column ’success’ should have a few FALSE (i.e.
+    failure).
+
+-   We will focus mainly on our own services and not Keycloak's
+
+-   From the data above, we will build two histograms : one for transaction
+    creation service, the other for transaction query.
+
+ 
+
+![](README.images/6ZDW3n.jpg)
+
+Mean (Before): 537.030086
+
+Standard Deviation (Before): 312.449197
+
+99th Percentile (Before): 1631.07
+
+ 
+
+Mean (After) : 233.514048
+
+Standard Deviation (After): 217.582342
+
+99th percentile (After) : 1109.26
+
+ 
+
+![](README.images/TnPJ4v.jpg)
+
+Mean (Before) : 196.5696853
+
+Standard Deviation (Before) : 138.9266695
+
+99th percentile (Before) : 760.69
+
+ 
+
+Mean (After) : 112.765712
+
+Standard Deviation (After) : 128.063771
+
+99th percentile (After) : 603.35
+
+ 
+
+### Load testing discussion
+
+-   Projecting from 700 concurrent users per second, we can assume that, for an
+    8 hour operation, we can cater for around 20 million users per day.
+
+-   From our summary, we obtain an error rate at 0.01% - which is quite good
+
+-   During upload, 99% of the time, performance remain \< 1.6s bbefore incident
+    and 1.1s after incident. This will depend on the size of the file uploaded
+
+-   During download, 99% of the time, we are at sub-second latency. Again, this
+    will depend on the size of the file downloaded
+
+-   We see that **the incident does not impact us **on our scale. In fact, we
+    are actually faster once Host3 is out of the picture.
+
+-   We suspect that this is because all our VMs (apart from our load-balancer)
+    are in London. So syncing data across AZs is not needed anymore.
+
+ 
+
+ 
+
+Conclusion
+----------
+
+We started by emphasising the importance of multi-cloud architecture as a risk
+mitigatigation approach, especially with uncertainty of today. We talked about
+the importance of being neutral in the world of cloud computing today.
+
+We then introduce the KeyMiCo stack made of Keycloak + Minio and CockroachDB as
+a CSP neutral alternative to more popular cloud services.  We then got our hands
+dirty and setup this stack in a distributed multi-AZ environment.
+
+Finally, we test (integration , load) the setup we have and the result is quite
+promising. It would be great to see this stack deployed to production and see
+the lessons learnt from there.
+
+ 
+
+ 
+
+Command line script
+-------------------
+
+Most of the commands in this article is captured in the files below:
+
+-   Setting up Host1:
+    <https://github.com/azrulhasni/keymico/blob/main/setup_nexthost_host1.sh>
+
+-   Setting up Host2:
+    <https://github.com/azrulhasni/keymico/blob/main/setup_nexthost_host2.sh>
+
+-   Setting up Host3:
+    <https://github.com/azrulhasni/keymico/blob/main/setup_nexthost_host3.sh>
+
+-   Setting up Host4:
+    <https://github.com/azrulhasni/keymico/blob/main/setup_nexthost_host4.sh>
+
+-   Setting up Host5:
+    <https://github.com/azrulhasni/keymico/blob/main/setup_nexthost_host5.sh>
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
